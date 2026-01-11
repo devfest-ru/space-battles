@@ -11,52 +11,46 @@ import { GameEngine, GAME_CONSTANTS } from '@space-battles/shared';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-const DEFAULT_CODE_P1 = `// FLEET ALPHA: Spin & Shoot
-// The simplest strategy: rotate and fire!
+const DEFAULT_CODE_P1 = `// FLEET ALPHA: Chaos Fleet
 
 for (const ship of state.myShips) {
   if (!ship.isAlive) continue;
   
+  // Check if near any wall
+  const nearWall = ship.x < 200 || ship.x > 2800 ||
+                   ship.y < 200 || ship.y > 1300;
+  
+  // Create smooth random-looking movement using sin/cos waves
+  // Time makes it change, position makes each ship different
+  const t = Date.now() / 1000;
+  const wobble = Math.sin(t * 3 + ship.x * 0.01) * Math.cos(t * 2 + ship.y * 0.01);
+  
   commands[ship.id] = {
-    rotate: 1,            // Always rotate clockwise
-    boost: 0,             // No boost
-    shoot: ship.canShoot  // Shoot when ready
+    rotate: nearWall ? 1 : wobble,
+    boost: 1,
+    shoot: ship.canShoot
   };
 }`;
 
-const DEFAULT_CODE_P2 = `// FLEET OMEGA: Chase & Shoot
-// Aim at enemy, shoot when aligned
-
-// Helper function: angle from A to B (in degrees)
-function angleTo(a, b) {
-  return Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
-}
-
-// Helper function: normalize angle to -180 to 180
-function normalize(angle) {
-  return ((angle % 360) + 540) % 360 - 180;
-}
+const DEFAULT_CODE_P2 = `// FLEET OMEGA: Chaos Fleet
 
 for (const ship of state.myShips) {
   if (!ship.isAlive) continue;
   
-  // Find first alive enemy
-  const enemy = state.enemyShips.find(e => e.isAlive);
+  // Check if near any wall
+  const nearWall = ship.x < 200 || ship.x > 2800 ||
+                   ship.y < 200 || ship.y > 1300;
   
-  if (enemy) {
-    // Calculate angle to enemy
-    const targetAngle = angleTo(ship, enemy);
-    const diff = normalize(targetAngle - ship.bodyAngle);
-    
-    commands[ship.id] = {
-      rotate: diff > 0 ? 1 : -1,    // Turn toward enemy
-      boost: 1,                      // Always boost
-      shoot: Math.abs(diff) < 20    // Shoot when roughly aimed
-    };
-  } else {
-    // No enemies left - just drift
-    commands[ship.id] = { rotate: 0, boost: 0, shoot: false };
-  }
+  // Create smooth random-looking movement using sin/cos waves
+  // Time makes it change, position makes each ship different
+  const t = Date.now() / 1000;
+  const wobble = Math.sin(t * 3 + ship.x * 0.01) * Math.cos(t * 2 + ship.y * 0.01);
+  
+  commands[ship.id] = {
+    rotate: nearWall ? 1 : wobble,
+    boost: 1,
+    shoot: ship.canShoot
+  };
 }`;
 
 function App() {
