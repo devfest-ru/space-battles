@@ -30,8 +30,8 @@ const rateLimitStore = new Map();
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.) in development
-    if (!origin && process.env.NODE_ENV !== 'production') {
+    // Allow requests with no origin (health checks, server-to-server, mobile apps)
+    if (!origin) {
       return callback(null, true);
     }
     if (ALLOWED_ORIGINS.includes(origin)) {
