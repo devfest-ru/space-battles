@@ -11,190 +11,52 @@ import { GameEngine, GAME_CONSTANTS } from '@space-battles/shared';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-const DEFAULT_CODE_P1 = `// ═══════════════════════════════════════════════════════════════
-// FLEET ALPHA: "HUNTER" - Aim First, Kill Fast
-// Simple but deadly: always aim at target, shoot when aligned
-// ═══════════════════════════════════════════════════════════════
+const DEFAULT_CODE_P1 = `// FLEET ALPHA: Spin & Shoot
+// The simplest strategy: rotate and fire!
 
-const { myShips, enemyShips, rockets, field, gameTime, constants } = state;
-
-function norm(a) { return ((a % 360) + 540) % 360 - 180; }
-function angle(x1, y1, x2, y2) { return Math.atan2(y2-y1, x2-x1) * 180/Math.PI; }
-function dist(x1, y1, x2, y2) { return Math.hypot(x2-x1, y2-y1); }
-
-// Lead target prediction
-function leadShot(ship, enemy, d) {
-  const speed = constants.SHIP_MIN_SPEED + constants.SHIP_BOOST_SPEED * 0.5;
-  const rad = enemy.bodyAngle * Math.PI / 180;
-  const t = d / constants.ROCKET_SPEED;
-  return angle(ship.x, ship.y, 
-    enemy.x + Math.cos(rad) * speed * t * 0.5,
-    enemy.y + Math.sin(rad) * speed * t * 0.5);
-}
-
-// Check for incoming rockets
-function incomingRocket(ship) {
-  for (const r of rockets) {
-    if (r.playerId === ship.playerId) continue;
-    const rad = r.angle * Math.PI / 180;
-    const dx = ship.x - r.x, dy = ship.y - r.y;
-    if (dx * Math.cos(rad) + dy * Math.sin(rad) < 0) continue;
-    const t = Math.hypot(dx, dy) / constants.ROCKET_SPEED;
-    const hx = r.x + Math.cos(rad) * constants.ROCKET_SPEED * t;
-    const hy = r.y + Math.sin(rad) * constants.ROCKET_SPEED * t;
-    if (dist(ship.x, ship.y, hx, hy) < 50 && t < 0.6) {
-      return r.angle + ((dx * Math.sin(rad) - dy * Math.cos(rad)) > 0 ? -90 : 90);
-    }
-  }
-  return null;
-}
-
-const enemies = enemyShips.filter(e => e.isAlive);
-
-for (let i = 0; i < myShips.length; i++) {
-  const ship = myShips[i];
-  if (!ship.isAlive || enemies.length === 0) continue;
+for (const ship of state.myShips) {
+  if (!ship.isAlive) continue;
   
-  // Target: closest enemy
-  const target = enemies.reduce((best, e) => {
-    const d = dist(ship.x, ship.y, e.x, e.y);
-    return d < best.d ? { e, d } : best;
-  }, { e: enemies[0], d: Infinity }).e;
-  
-  const d = dist(ship.x, ship.y, target.x, target.y);
-  const directAngle = angle(ship.x, ship.y, target.x, target.y);
-  const aimAngle = d > 300 ? leadShot(ship, target, d) : directAngle;
-  const aimDiff = norm(aimAngle - ship.bodyAngle);
-  
-  const dodge = incomingRocket(ship);
-  const margin = 100;
-  const nearWall = ship.x < margin || ship.x > field.width - margin ||
-                   ship.y < margin || ship.y > field.height - margin;
-  
-  let rotate = 0, boost = 0;
-  
-  if (dodge !== null) {
-    // DODGE incoming rocket
-    const diff = norm(dodge - ship.bodyAngle);
-    rotate = diff > 0 ? 1 : -1;
-    boost = 1;
-  } else if (nearWall) {
-    // ESCAPE wall
-    const escape = angle(ship.x, ship.y, field.width/2, field.height/2);
-    const diff = norm(escape - ship.bodyAngle);
-    rotate = diff > 5 ? 1 : diff < -5 ? -1 : 0;
-    boost = Math.abs(diff) < 45 ? 1 : 0;
-  } else {
-    // HUNT: Always aim at target
-    rotate = aimDiff > 3 ? 1 : aimDiff < -3 ? -1 : 0;
-    
-    // Boost based on distance and alignment
-    if (d > 400) boost = Math.abs(aimDiff) < 30 ? 1 : 0; // Close in
-    else if (d < 150) boost = 1; // Too close, move
-    else boost = Math.abs(aimDiff) > 20 ? 1 : 0; // Reposition if not aimed
-  }
-  
-  // SHOOT when aimed
-  const shoot = Math.abs(aimDiff) < 12 && ship.canShoot;
-  
-  commands[ship.id] = { rotate, boost, shoot };
+  commands[ship.id] = {
+    rotate: 1,            // Always rotate clockwise
+    boost: 0,             // No boost
+    shoot: ship.canShoot  // Shoot when ready
+  };
 }`;
 
-const DEFAULT_CODE_P2 = `// ═══════════════════════════════════════════════════════════════
-// FLEET OMEGA: "STALKER" - Patient Predator
-// Circle and strike: orbit at range, take precise shots
-// ═══════════════════════════════════════════════════════════════
+const DEFAULT_CODE_P2 = `// FLEET OMEGA: Chase & Shoot
+// Aim at enemy, shoot when aligned
 
-const { myShips, enemyShips, rockets, field, gameTime, constants } = state;
-
-function norm(a) { return ((a % 360) + 540) % 360 - 180; }
-function angle(x1, y1, x2, y2) { return Math.atan2(y2-y1, x2-x1) * 180/Math.PI; }
-function dist(x1, y1, x2, y2) { return Math.hypot(x2-x1, y2-y1); }
-
-// Lead target prediction
-function leadShot(ship, enemy, d) {
-  const speed = constants.SHIP_MIN_SPEED + constants.SHIP_BOOST_SPEED * 0.5;
-  const rad = enemy.bodyAngle * Math.PI / 180;
-  const t = d / constants.ROCKET_SPEED;
-  return angle(ship.x, ship.y,
-    enemy.x + Math.cos(rad) * speed * t * 0.5,
-    enemy.y + Math.sin(rad) * speed * t * 0.5);
+// Helper function: angle from A to B (in degrees)
+function angleTo(a, b) {
+  return Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
 }
 
-// Check for incoming rockets
-function incomingRocket(ship, idx) {
-  for (const r of rockets) {
-    if (r.playerId === ship.playerId) continue;
-    const rad = r.angle * Math.PI / 180;
-    const dx = ship.x - r.x, dy = ship.y - r.y;
-    if (dx * Math.cos(rad) + dy * Math.sin(rad) < 0) continue;
-    const t = Math.hypot(dx, dy) / constants.ROCKET_SPEED;
-    const hx = r.x + Math.cos(rad) * constants.ROCKET_SPEED * t;
-    const hy = r.y + Math.sin(rad) * constants.ROCKET_SPEED * t;
-    if (dist(ship.x, ship.y, hx, hy) < 50 && t < 0.6) {
-      return r.angle + ((idx % 2 === 0) ? 90 : -90);
-    }
-  }
-  return null;
+// Helper function: normalize angle to -180 to 180
+function normalize(angle) {
+  return ((angle % 360) + 540) % 360 - 180;
 }
 
-const enemies = enemyShips.filter(e => e.isAlive);
-
-for (let i = 0; i < myShips.length; i++) {
-  const ship = myShips[i];
-  if (!ship.isAlive || enemies.length === 0) continue;
+for (const ship of state.myShips) {
+  if (!ship.isAlive) continue;
   
-  // Target: weakest enemy, then closest
-  const target = enemies.reduce((best, e) => {
-    const d = dist(ship.x, ship.y, e.x, e.y);
-    const score = (4 - e.health) * 500 - d;
-    return score > best.score ? { e, d, score } : best;
-  }, { e: enemies[0], d: dist(ship.x, ship.y, enemies[0].x, enemies[0].y), score: -Infinity }).e;
+  // Find first alive enemy
+  const enemy = state.enemyShips.find(e => e.isAlive);
   
-  const d = dist(ship.x, ship.y, target.x, target.y);
-  const directAngle = angle(ship.x, ship.y, target.x, target.y);
-  const aimAngle = d > 250 ? leadShot(ship, target, d) : directAngle;
-  const aimDiff = norm(aimAngle - ship.bodyAngle);
-  
-  const dodge = incomingRocket(ship, i);
-  const margin = 100;
-  const nearWall = ship.x < margin || ship.x > field.width - margin ||
-                   ship.y < margin || ship.y > field.height - margin;
-  
-  let rotate = 0, boost = 0;
-  
-  if (dodge !== null) {
-    // DODGE incoming rocket
-    const diff = norm(dodge - ship.bodyAngle);
-    rotate = diff > 0 ? 1 : -1;
-    boost = 1;
-  } else if (nearWall) {
-    // ESCAPE wall
-    const escape = angle(ship.x, ship.y, field.width/2, field.height/2);
-    const diff = norm(escape - ship.bodyAngle);
-    rotate = diff > 5 ? 1 : diff < -5 ? -1 : 0;
-    boost = Math.abs(diff) < 45 ? 1 : 0;
-  } else if (Math.abs(aimDiff) < 15) {
-    // ALIGNED: Stop rotating, take the shot!
-    rotate = aimDiff > 2 ? 1 : aimDiff < -2 ? -1 : 0;
-    boost = d < 200 ? 1 : 0; // Only boost if too close
+  if (enemy) {
+    // Calculate angle to enemy
+    const targetAngle = angleTo(ship, enemy);
+    const diff = normalize(targetAngle - ship.bodyAngle);
+    
+    commands[ship.id] = {
+      rotate: diff > 0 ? 1 : -1,    // Turn toward enemy
+      boost: 1,                      // Always boost
+      shoot: Math.abs(diff) < 20    // Shoot when roughly aimed
+    };
   } else {
-    // NOT ALIGNED: Rotate toward target
-    rotate = aimDiff > 0 ? 1 : -1;
-    
-    // Slight orbit while turning (different direction per ship)
-    const orbitDir = (i % 2 === 0) ? 1 : -1;
-    const orbitAngle = directAngle + 45 * orbitDir;
-    const orbitDiff = norm(orbitAngle - ship.bodyAngle);
-    
-    // Boost if moving somewhat toward orbit position
-    boost = Math.abs(orbitDiff) < 60 ? 1 : 0;
+    // No enemies left - just drift
+    commands[ship.id] = { rotate: 0, boost: 0, shoot: false };
   }
-  
-  // SHOOT when aimed (slightly wider window than P1)
-  const shoot = Math.abs(aimDiff) < 14 && ship.canShoot;
-  
-  commands[ship.id] = { rotate, boost, shoot };
 }`;
 
 function App() {
