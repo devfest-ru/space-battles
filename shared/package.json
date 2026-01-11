@@ -1,0 +1,16 @@
+{
+  "name": "@space-battles/shared",
+  "version": "1.0.0",
+  "description": "Shared game engine for Space Battles",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./gameConstants": "./gameConstants.js",
+    "./GameEngine": "./GameEngine.js"
+  },
+  "files": [
+    "*.js"
+  ]
+}
+

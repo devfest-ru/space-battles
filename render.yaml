@@ -8,9 +8,8 @@ services:
     runtime: node
     region: oregon
     plan: free
-    rootDir: server
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: npm install && npm run build:client
+    startCommand: npm run start:server
     envVars:
       - key: NODE_ENV
         value: production

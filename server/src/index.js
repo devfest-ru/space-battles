@@ -2,8 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import { GameEngine } from './GameEngine.js';
-import { GAME_CONSTANTS } from './gameConstants.js';
+import { GameEngine, GAME_CONSTANTS } from '@space-battles/shared';
 import { ArenaManager } from './ArenaManager.js';
 import { TOURNAMENT_CONSTANTS } from './tournamentConstants.js';
 

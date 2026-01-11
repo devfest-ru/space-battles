@@ -1,5 +1,5 @@
+// Shared Game Engine - Works in both Node.js and Browser
 import { GAME_CONSTANTS } from './gameConstants.js';
-import vm from 'node:vm';
 
 class Ship {
   constructor(id, playerId, x, y, bodyAngle = 0) {
@@ -143,6 +143,10 @@ export class GameEngine {
     this.playerCodes[playerId] = code;
   }
 
+  hasPlayerCode(playerId) {
+    return !!this.playerCodes[playerId];
+  }
+
   startGame() {
     if (!this.playerCodes[1] || !this.playerCodes[2]) {
       return { success: false, error: 'Both players must submit code before starting' };
@@ -215,6 +219,8 @@ export class GameEngine {
     };
   }
 
+  // Execute player code using Function constructor
+  // Works in both Node.js and Browser environments
   executePlayerCode(playerId) {
     const code = this.playerCodes[playerId];
     if (!code) return {};
@@ -224,36 +230,34 @@ export class GameEngine {
     try {
       const commands = {};
       
-      const sandbox = {
-        state: playerState,
-        commands: commands,
-        Math: Math,
-        console: { log: (...args) => console.log(`[Player ${playerId}]`, ...args) },
-        Infinity: Infinity,
-        NaN: NaN,
-        undefined: undefined,
-        parseInt: parseInt,
-        parseFloat: parseFloat,
-        isNaN: isNaN,
-        isFinite: isFinite,
-        Array: Array,
-        Object: Object,
-        String: String,
-        Number: Number,
-        Boolean: Boolean,
-      };
-
-      // Create a context with the sandbox
-      const context = vm.createContext(sandbox);
+      // Use Function constructor - works in both environments
+      const wrappedCode = `
+        "use strict";
+        const state = arguments[0];
+        const commands = arguments[1];
+        const Math = arguments[2];
+        const console = arguments[3];
+        ${code}
+        return commands;
+      `;
       
-      // Run the player code with a timeout
-      const script = new vm.Script(code);
-      script.runInContext(context, { timeout: GAME_CONSTANTS.PLAYER_CODE_TIMEOUT });
+      const sandboxedConsole = {
+        log: (...args) => console.log(`[Player ${playerId}]`, ...args),
+        warn: (...args) => console.warn(`[Player ${playerId}]`, ...args),
+        error: (...args) => console.error(`[Player ${playerId}]`, ...args),
+      };
+      
+      const fn = new Function(wrappedCode);
+      const result = fn(playerState, commands, Math, sandboxedConsole);
+      
+      // Return result if it returned commands, otherwise use the commands object
+      if (result && typeof result === 'object') {
+        return result;
+      }
 
       return commands;
     } catch (error) {
       console.error(`Player ${playerId} code error:`, error.message);
-      console.error(`Stack:`, error.stack);
       return {};
     }
   }
@@ -529,3 +533,4 @@ export class GameEngine {
 }
 
 export default GameEngine;
+

@@ -1,4 +1,5 @@
 // Game Constants - All configurable game parameters
+// Shared between server and client
 
 export const GAME_CONSTANTS = {
   // Battlefield dimensions
@@ -28,3 +29,4 @@ export const GAME_CONSTANTS = {
 };
 
 export default GAME_CONSTANTS;
+

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { TOURNAMENT_CONSTANTS } from './tournamentConstants.js';
-import { GameEngine } from './GameEngine.js';
+import { GameEngine } from '@space-battles/shared';
 
 // Ensure data directories exist
 function ensureDirectories() {

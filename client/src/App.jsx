@@ -6,6 +6,7 @@ import Arena from './components/Arena';
 import AdminPanel from './components/AdminPanel';
 import IntroTutorial from './components/IntroTutorial';
 import { soundManager } from './utils/sounds';
+import { GameEngine, GAME_CONSTANTS } from '@space-battles/shared';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -196,9 +197,12 @@ for (let i = 0; i < myShips.length; i++) {
 }`;
 
 function App() {
+  // Local game engine for sandbox mode (each client has their own!)
+  const gameEngineRef = useRef(null);
+  const gameLoopRef = useRef(null);
+  
   const [socket, setSocket] = useState(null);
   const [gameState, setGameState] = useState(null);
-  const [constants, setConstants] = useState(null);
   const [player1Code, setPlayer1Code] = useState(DEFAULT_CODE_P1);
   const [player2Code, setPlayer2Code] = useState(DEFAULT_CODE_P2);
   const [player1Submitted, setPlayer1Submitted] = useState(false);
@@ -214,6 +218,20 @@ function App() {
   });
   const [showTutorial, setShowTutorial] = useState(false);
 
+  // Initialize local game engine on mount
+  useEffect(() => {
+    gameEngineRef.current = new GameEngine();
+    gameEngineRef.current.initializeGame();
+    setGameState(gameEngineRef.current.getGameState());
+    
+    return () => {
+      // Cleanup game loop on unmount
+      if (gameLoopRef.current) {
+        cancelAnimationFrame(gameLoopRef.current);
+      }
+    };
+  }, []);
+
   // Check for first visit and show tutorial
   useEffect(() => {
     const hasSeenTutorial = localStorage.getItem('effectiveSpaceTutorialSeen');
@@ -228,12 +246,12 @@ function App() {
   };
 
 
-  // Connect to socket
+  // Connect to socket (only needed for Arena mode)
   useEffect(() => {
     const newSocket = io(SOCKET_URL);
     
     newSocket.on('connect', () => {
-      console.log('Connected to server');
+      console.log('Connected to server (for Arena mode)');
       setConnected(true);
     });
 
@@ -242,25 +260,7 @@ function App() {
       setConnected(false);
     });
 
-    newSocket.on('gameState', (state) => {
-      setGameState(state);
-    });
-
-    newSocket.on('constants', (c) => {
-      setConstants(c);
-    });
-
-    newSocket.on('codeSubmitted', ({ playerId }) => {
-      if (playerId === 1) setPlayer1Submitted(true);
-      if (playerId === 2) setPlayer2Submitted(true);
-    });
-
-    newSocket.on('gameReset', () => {
-      setPlayer1Submitted(false);
-      setPlayer2Submitted(false);
-    });
-
-    // Arena updates
+    // Arena updates only - sandbox runs locally!
     newSocket.on('arenaUpdate', (state) => {
       setArenaState(state);
     });
@@ -335,88 +335,123 @@ function App() {
     });
   }, []);
 
-  const submitCode = useCallback((playerId, code) => {
-    if (socket) {
-      socket.emit('submitCode', { playerId, code });
+  // Local game loop using requestAnimationFrame for smooth 60fps
+  const runGameLoop = useCallback(() => {
+    if (!gameEngineRef.current?.isRunning) return;
+    
+    const state = gameEngineRef.current.tick();
+    setGameState(state);
+    
+    if (state.isRunning) {
+      gameLoopRef.current = requestAnimationFrame(runGameLoop);
     }
-  }, [socket]);
+  }, []);
+
+  const submitCode = useCallback((playerId, code) => {
+    if (!gameEngineRef.current) return;
+    
+    gameEngineRef.current.setPlayerCode(playerId, code);
+    if (playerId === 1) setPlayer1Submitted(true);
+    if (playerId === 2) setPlayer2Submitted(true);
+  }, []);
 
   const startGame = useCallback(() => {
-    if (socket) {
-      socket.emit('startGame');
+    if (!gameEngineRef.current) return;
+    
+    const result = gameEngineRef.current.startGame();
+    if (result.success) {
+      // Start the local game loop
+      gameLoopRef.current = requestAnimationFrame(runGameLoop);
+    } else {
+      console.error('Failed to start game:', result.error);
     }
-  }, [socket]);
+  }, [runGameLoop]);
 
   const stopGame = useCallback(() => {
-    if (socket) {
-      socket.emit('stopGame');
+    if (!gameEngineRef.current) return;
+    
+    // Cancel the game loop
+    if (gameLoopRef.current) {
+      cancelAnimationFrame(gameLoopRef.current);
+      gameLoopRef.current = null;
     }
-  }, [socket]);
+    
+    // Stop and reset positions but keep code
+    gameEngineRef.current.stopAndReset();
+    setGameState(gameEngineRef.current.getGameState());
+  }, []);
 
   const resetGame = useCallback(() => {
-    if (socket) {
-      socket.emit('resetGame');
+    if (!gameEngineRef.current) return;
+    
+    // Cancel the game loop
+    if (gameLoopRef.current) {
+      cancelAnimationFrame(gameLoopRef.current);
+      gameLoopRef.current = null;
     }
-  }, [socket]);
+    
+    // Full reset including code
+    gameEngineRef.current.initializeGame();
+    setGameState(gameEngineRef.current.getGameState());
+    setPlayer1Submitted(false);
+    setPlayer2Submitted(false);
+  }, []);
 
-  const downloadBattleLog = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/battlelog');
-      const log = await response.json();
+  const downloadBattleLog = useCallback(() => {
+    if (!gameEngineRef.current) return;
+    
+    const log = gameEngineRef.current.getBattleLog();
+    
+    // Create a formatted text version for easy reading
+    let textLog = `=== SPACE BATTLE LOG ===\n`;
+    textLog += `Sector: ${log.field.width} x ${log.field.height}\n`;
+    textLog += `Duration: ${Math.floor(log.duration / 1000)}s\n`;
+    textLog += `Victor: ${log.winner === 'draw' ? 'Draw' : `Fleet ${log.winner}`}\n\n`;
+    
+    textLog += `=== COMBAT PARAMETERS ===\n`;
+    textLog += `Ship Min Speed: ${log.constants.SHIP_MIN_SPEED}\n`;
+    textLog += `Ship Boost Speed: ${log.constants.SHIP_BOOST_SPEED}\n`;
+    textLog += `Ship Rotation: ${log.constants.SHIP_ROTATION_SPEED}°/s\n`;
+    textLog += `Rocket Speed: ${log.constants.ROCKET_SPEED}\n`;
+    textLog += `Recharge Time: ${log.constants.RELOAD_TIME}ms\n\n`;
+    
+    textLog += `=== BATTLE SNAPSHOTS (every 500ms) ===\n\n`;
+    
+    for (const snap of log.snapshots) {
+      textLog += `--- ${snap.timeFormatted} (${snap.time}ms) ---\n`;
       
-      // Create a formatted text version for easy reading
-      let textLog = `=== GALAXY BATTLE LOG ===\n`;
-      textLog += `Sector: ${log.field.width} x ${log.field.height}\n`;
-      textLog += `Duration: ${Math.floor(log.duration / 1000)}s\n`;
-      textLog += `Victor: ${log.winner === 'draw' ? 'Draw' : `Fleet ${log.winner}`}\n\n`;
-      
-      textLog += `=== COMBAT PARAMETERS ===\n`;
-      textLog += `Ship Min Speed: ${log.constants.SHIP_MIN_SPEED}\n`;
-      textLog += `Ship Boost Speed: ${log.constants.SHIP_BOOST_SPEED}\n`;
-      textLog += `Ship Rotation: ${log.constants.SHIP_ROTATION_SPEED}°/s\n`;
-      textLog += `Rocket Speed: ${log.constants.ROCKET_SPEED}\n`;
-      textLog += `Recharge Time: ${log.constants.RELOAD_TIME}ms\n\n`;
-      
-      textLog += `=== BATTLE SNAPSHOTS (every 500ms) ===\n\n`;
-      
-      for (const snap of log.snapshots) {
-        textLog += `--- ${snap.timeFormatted} (${snap.time}ms) ---\n`;
-        
-        textLog += `Ships:\n`;
-        for (const ship of snap.ships) {
-          const status = ship.alive ? `Shield:${ship.health}` : 'DESTROYED';
-          textLog += `  [F${ship.player}] ${ship.id}: pos(${ship.x}, ${ship.y}) heading:${ship.bodyAngle}° ${status}\n`;
-        }
-        
-        if (snap.rockets && snap.rockets.length > 0) {
-          textLog += `Rockets: ${snap.rockets.length}\n`;
-          for (const rocket of snap.rockets) {
-            textLog += `  [F${rocket.player}] pos(${rocket.x}, ${rocket.y}) angle:${rocket.angle}°\n`;
-          }
-        }
-        
-        textLog += `Commands:\n`;
-        textLog += `  F1: ${JSON.stringify(snap.commands.p1)}\n`;
-        textLog += `  F2: ${JSON.stringify(snap.commands.p2)}\n`;
-        
-        if (snap.events.length > 0) {
-          textLog += `Events: ${snap.events.map(e => e.type).join(', ')}\n`;
-        }
-        
-        textLog += `\n`;
+      textLog += `Ships:\n`;
+      for (const ship of snap.ships) {
+        const status = ship.alive ? `Shield:${ship.health}` : 'DESTROYED';
+        textLog += `  [F${ship.player}] ${ship.id}: pos(${ship.x}, ${ship.y}) heading:${ship.bodyAngle}° ${status}\n`;
       }
       
-      // Download as text file
-      const blob = new Blob([textLog], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `galaxy-battle-${Date.now()}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to download battle log:', error);
+      if (snap.rockets && snap.rockets.length > 0) {
+        textLog += `Rockets: ${snap.rockets.length}\n`;
+        for (const rocket of snap.rockets) {
+          textLog += `  [F${rocket.player}] pos(${rocket.x}, ${rocket.y}) angle:${rocket.angle}°\n`;
+        }
+      }
+      
+      textLog += `Commands:\n`;
+      textLog += `  F1: ${JSON.stringify(snap.commands.p1)}\n`;
+      textLog += `  F2: ${JSON.stringify(snap.commands.p2)}\n`;
+      
+      if (snap.events.length > 0) {
+        textLog += `Events: ${snap.events.map(e => e.type).join(', ')}\n`;
+      }
+      
+      textLog += `\n`;
     }
+    
+    // Download as text file
+    const blob = new Blob([textLog], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `space-battle-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   }, []);
 
   const formatTime = (ms) => {
@@ -433,7 +468,7 @@ function App() {
   };
 
   const getGameStatus = () => {
-    if (!connected) return { text: 'Disconnected', status: 'ended' };
+    // Sandbox mode runs locally, no server connection needed
     if (!gameState) return { text: 'Loading...', status: 'waiting' };
     if (gameState.winner) return { text: `Battle Complete`, status: 'ended' };
     if (gameState.isRunning) return { text: 'Engage!', status: 'running' };
@@ -587,7 +622,7 @@ function App() {
             <div className="game-canvas-wrapper">
               <GameCanvas 
                 gameState={gameState} 
-                constants={constants}
+                constants={GAME_CONSTANTS}
               />
               {isFullscreen && (
                 <button 

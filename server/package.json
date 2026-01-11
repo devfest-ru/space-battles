@@ -1,7 +1,7 @@
 {
-  "name": "galaxy-battle-server",
+  "name": "space-battles-server",
   "version": "1.0.0",
-  "description": "Galaxy Battle Game Server",
+  "description": "Space Battles Game Server",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "dev": "node --watch src/index.js"
   },
   "dependencies": {
+    "@space-battles/shared": "file:../shared",
     "express": "^4.18.2",
     "socket.io": "^4.7.2",
     "cors": "^2.8.5"
