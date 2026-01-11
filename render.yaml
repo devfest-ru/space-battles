@@ -1,8 +1,8 @@
 # Render Blueprint - Space Battles
-# Deploy both frontend and backend
+# Deploys the backend server
+# Frontend: Add manually as Static Site in Render Dashboard
 
 services:
-  # Backend API Server
   - type: web
     name: space-battles-server
     runtime: node
@@ -17,25 +17,6 @@ services:
       - key: ADMIN_API_KEY
         generateValue: true
       - key: ALLOWED_ORIGINS
-        sync: false  # Set manually after deployment
+        sync: false
     healthCheckPath: /health
-
-# Static Sites (separate section)
-staticSites:
-  - name: space-battles-client
-    plan: free
-    rootDir: client
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: public, max-age=0, must-revalidate
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        sync: false  # Set manually after deployment
 
