@@ -1,5 +1,5 @@
 # Render Blueprint - Space Battles
-# Deploy both frontend and backend with one click
+# Deploy both frontend and backend
 
 services:
   # Backend API Server
@@ -15,19 +15,14 @@ services:
       - key: NODE_ENV
         value: production
       - key: ADMIN_API_KEY
-        generateValue: true  # Render will generate a random secure key
+        generateValue: true
       - key: ALLOWED_ORIGINS
-        fromService:
-          name: space-battles-client
-          type: web
-          property: url
+        sync: false  # Set manually after deployment: https://space-battles-client.onrender.com
     healthCheckPath: /health
 
   # Frontend Static Site
-  - type: web
+  - type: static
     name: space-battles-client
-    runtime: static
-    region: oregon
     plan: free
     rootDir: client
     buildCommand: npm install && npm run build
@@ -42,8 +37,5 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          name: space-battles-server
-          type: web
-          property: url
+        sync: false  # Set manually after deployment: https://space-battles-server.onrender.com
 
