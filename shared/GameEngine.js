@@ -278,19 +278,26 @@ export class GameEngine {
       // Health ratio affects rotation and boost
       const healthRatio = ship.health / GAME_CONSTANTS.SHIP_MAX_HEALTH;
 
-      // Process rotation command - rotation speed scales with health
+      // Process rotation command - supports variable speed (-1 to 1)
+      // Rotation speed scales with health
       if (shipCommands.rotate !== undefined) {
         const rotationSpeed = GAME_CONSTANTS.SHIP_ROTATION_SPEED * healthRatio;
-        const rotateAmount = Math.sign(shipCommands.rotate) * rotationSpeed * deltaTime;
+        // Clamp rotate value to -1 to 1 for variable control
+        const rotateValue = Math.max(-1, Math.min(1, shipCommands.rotate));
+        const rotateAmount = rotateValue * rotationSpeed * deltaTime;
         ship.bodyAngle = this.normalizeAngle(ship.bodyAngle + rotateAmount);
       }
 
       // Ships always move forward at minimum speed, can boost for extra speed
-      // Boost speed scales with health: (health / max_health) * BOOST_SPEED
+      // Boost supports variable speed (0 to 1)
+      // Max boost speed scales with health: (health / max_health) * BOOST_SPEED
       const minSpeed = GAME_CONSTANTS.SHIP_MIN_SPEED;
       const maxBoost = GAME_CONSTANTS.SHIP_BOOST_SPEED * healthRatio;
-      const isBoosting = shipCommands.boost !== undefined && shipCommands.boost > 0;
-      const totalSpeed = minSpeed + (isBoosting ? maxBoost : 0);
+      // Clamp boost value to 0 to 1 for variable control
+      const boostValue = shipCommands.boost !== undefined 
+        ? Math.max(0, Math.min(1, shipCommands.boost)) 
+        : 0;
+      const totalSpeed = minSpeed + (maxBoost * boostValue);
       
       const radians = (ship.bodyAngle * Math.PI) / 180;
       const newX = ship.x + Math.cos(radians) * totalSpeed * deltaTime;

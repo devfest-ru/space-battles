@@ -10,7 +10,7 @@ export const GAME_CONSTANTS = {
   SHIP_SIZE: 30,                    // Ship radius for collision
   SHIP_MIN_SPEED: 200,               // Minimum speed (ships always drift forward)
   SHIP_BOOST_SPEED: 500,            // Max additional boost speed at full health
-  SHIP_ROTATION_SPEED: 200,         // Degrees per second (body rotation)
+  SHIP_ROTATION_SPEED: 360,         // Degrees per second (body rotation)
   SHIPS_PER_PLAYER: 5,
   SHIP_MAX_HEALTH: 3,
   

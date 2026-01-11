@@ -5,6 +5,7 @@ import GameCanvas from './components/GameCanvas';
 import Arena from './components/Arena';
 import AdminPanel from './components/AdminPanel';
 import IntroTutorial from './components/IntroTutorial';
+import ApiDocs from './components/ApiDocs';
 import { soundManager } from './utils/sounds';
 import { GameEngine, GAME_CONSTANTS } from '@space-battles/shared';
 
@@ -217,6 +218,7 @@ function App() {
     return params.has('admin');
   });
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showApiDocs, setShowApiDocs] = useState(false);
 
   // Initialize local game engine on mount
   useEffect(() => {
@@ -524,6 +526,18 @@ function App() {
             </svg>
           </button>
           <button 
+            className="icon-btn" 
+            onClick={() => setShowApiDocs(true)}
+            title="API Documentation"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              <line x1="8" y1="7" x2="16" y2="7"/>
+              <line x1="8" y1="11" x2="14" y2="11"/>
+            </svg>
+          </button>
+          <button 
             className={`icon-btn ${soundEnabled ? 'sound-on' : 'sound-off'}`}
             onClick={toggleSound}
             title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
@@ -684,28 +698,6 @@ function App() {
             </button>
           </div>
 
-          <div className="api-reference">
-            <h3>📖 Fleet Command API</h3>
-            <pre>{`Available in your code:
-• state.myShips[]     - Your ships
-• state.enemyShips[]  - Enemy ships
-• state.rockets[]    - Active rockets
-• state.field         - {width, height}
-• state.gameTime      - Mission time (ms)
-
-Ship properties:
-• id, x, y, bodyAngle, weaponAngle
-• health, isAlive, healthRatio, maxSpeed
-• canShoot, healthRatio, maxSpeed
-
-Commands (set on commands[ship.id]):
-• boost: 1 - adds extra thrust
-• rotate: 1 (clockwise) or -1 (counter)
-• shoot: true to fire rocket
-
-Ships always drift forward at MIN_SPEED.
-Boost adds extra speed based on health!`}</pre>
-          </div>
         </div>
 
         {/* Fleet 2 Panel */}
@@ -759,6 +751,11 @@ Boost adds extra speed based on health!`}</pre>
       {/* Intro Tutorial */}
       {showTutorial && (
         <IntroTutorial onClose={handleCloseTutorial} />
+      )}
+
+      {/* API Documentation */}
+      {showApiDocs && (
+        <ApiDocs onClose={() => setShowApiDocs(false)} />
       )}
     </div>
   );
