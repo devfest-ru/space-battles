@@ -17,12 +17,12 @@ services:
       - key: ADMIN_API_KEY
         generateValue: true
       - key: ALLOWED_ORIGINS
-        sync: false  # Set manually after deployment: https://space-battles-client.onrender.com
+        sync: false  # Set manually after deployment
     healthCheckPath: /health
 
-  # Frontend Static Site
-  - type: static
-    name: space-battles-client
+# Static Sites (separate section)
+staticSites:
+  - name: space-battles-client
     plan: free
     rootDir: client
     buildCommand: npm install && npm run build
@@ -37,5 +37,5 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        sync: false  # Set manually after deployment: https://space-battles-server.onrender.com
+        sync: false  # Set manually after deployment
 
