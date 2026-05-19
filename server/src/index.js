@@ -5,6 +5,8 @@ import cors from 'cors';
 import { GameEngine, GAME_CONSTANTS } from '@space-battles/shared';
 import { ArenaManager } from './ArenaManager.js';
 import { TOURNAMENT_CONSTANTS } from './tournamentConstants.js';
+import { KothManager } from './KothManager.js';
+import { KOTH_CONSTANTS } from './kothConstants.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -156,6 +158,12 @@ arenaManager.onUpdate = (state) => {
   io.emit('arenaUpdate', state);
 };
 
+// Create King of the Hill manager (isolated "Championship" mode)
+const kothManager = new KothManager();
+kothManager.onUpdate = (state) => {
+  io.emit('kothUpdate', state);
+};
+
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
@@ -166,6 +174,9 @@ io.on('connection', (socket) => {
   
   // Send arena state
   socket.emit('arenaUpdate', arenaManager.getArenaState());
+
+  // Send King of the Hill state
+  socket.emit('kothUpdate', kothManager.getPublicState());
 
   // Handle player code submission
   socket.on('submitCode', ({ playerId, code }) => {
@@ -390,6 +401,112 @@ app.post('/api/arena/reset', adminAuth, (req, res) => {
 app.post('/api/arena/clear', adminAuth, (req, res) => {
   const result = arenaManager.clearAll();
   res.json(result);
+});
+
+// ============ KING OF THE HILL ENDPOINTS (isolated "Championship" mode) ============
+
+// Public KOTH state (no code exposed)
+app.get('/api/koth/state', (req, res) => {
+  res.json(kothManager.getPublicState());
+});
+
+// KOTH constants
+app.get('/api/koth/constants', (req, res) => {
+  res.json(KOTH_CONSTANTS);
+});
+
+// Register a team (rate limited)
+app.post('/api/koth/register', rateLimit, (req, res) => {
+  const sanitizedName = sanitizeName(req.body.name);
+  if (!sanitizedName) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid name. Use 2-30 characters (letters, numbers, spaces, hyphens, underscores only).',
+    });
+  }
+  const result = kothManager.registerTeam(sanitizedName);
+  res.json(result);
+});
+
+// Submit team code (rate limited)
+app.post('/api/koth/submit', rateLimit, (req, res) => {
+  const { name, code } = req.body;
+  const sanitizedName = sanitizeName(name);
+  if (!sanitizedName) {
+    return res.status(400).json({ success: false, error: 'Invalid name' });
+  }
+  const validation = validateCode(code);
+  if (!validation.valid) {
+    return res.status(400).json({ success: false, error: validation.error });
+  }
+  const result = kothManager.submitCode(sanitizedName, code);
+  res.json(result);
+});
+
+// Get a game replay
+app.get('/api/koth/replay/:seriesId/:gameIndex', (req, res) => {
+  const replay = kothManager.getReplay(req.params.seriesId, parseInt(req.params.gameIndex));
+  if (replay) {
+    res.json(replay);
+  } else {
+    res.status(404).json({ error: 'Replay not found' });
+  }
+});
+
+// ----- KOTH admin endpoints (protected) -----
+
+// Admin KOTH state (includes all code)
+app.get('/api/koth/admin/state', adminAuth, (req, res) => {
+  res.json(kothManager.getAdminState());
+});
+
+// Create tournament with the starting king code
+app.post('/api/koth/tournament/create', adminAuth, (req, res) => {
+  const { kingCode } = req.body || {};
+  const validation = validateCode(kingCode);
+  if (!validation.valid) {
+    return res.status(400).json({ success: false, error: validation.error });
+  }
+  res.json(kothManager.createTournament(kingCode));
+});
+
+// Update the starting king's code
+app.post('/api/koth/king/code', adminAuth, (req, res) => {
+  const { code } = req.body || {};
+  const validation = validateCode(code);
+  if (!validation.valid) {
+    return res.status(400).json({ success: false, error: validation.error });
+  }
+  res.json(kothManager.updateKingCode(code));
+});
+
+// Open a new round with a given K
+app.post('/api/koth/round/start', adminAuth, (req, res) => {
+  const { K } = req.body || {};
+  res.json(kothManager.startRound(K));
+});
+
+// Run the current round's battles (long running - started in background)
+app.post('/api/koth/round/run', adminAuth, (req, res) => {
+  const round = kothManager.getCurrentRound();
+  if (!kothManager.tournament || kothManager.tournament.status !== 'running') {
+    return res.json({ success: false, error: 'No running tournament' });
+  }
+  if (!round || round.status !== 'collecting') {
+    return res.json({ success: false, error: 'No round awaiting battles' });
+  }
+  kothManager.runRound().catch(err => console.error('KOTH round error:', err));
+  res.json({ success: true, message: 'Battles started' });
+});
+
+// Finish the tournament - current king wins
+app.post('/api/koth/tournament/finish', adminAuth, (req, res) => {
+  res.json(kothManager.finishTournament());
+});
+
+// Reset everything and reopen registration
+app.post('/api/koth/reset', adminAuth, (req, res) => {
+  res.json(kothManager.resetAll());
 });
 
 // ============ HEALTH CHECK ============
