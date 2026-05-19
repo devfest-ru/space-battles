@@ -163,7 +163,7 @@ function Arena({ arenaState, onBack }) {
     <div className="arena">
       <div className="arena-header">
         <button className="back-btn" onClick={onBack}>← Back to Simulator</button>
-        <h1>🏆 Championship</h1>
+        <h1>🏆 Tournaments</h1>
         {message && (
           <div className={`arena-message ${message.isError ? 'error' : 'success'}`}>
             {message.text}
@@ -295,7 +295,7 @@ function Arena({ arenaState, onBack }) {
             {tournament?.status === 'running' && (
               <div className="live-tournament-banner">
                 <span className="live-dot"></span>
-                <span>Championship in progress...</span>
+                <span>Tournament in progress...</span>
                 {tournament.settings && (
                   <span className="tournament-settings-badge">
                     Best of {tournament.settings.bestOf} • Max {tournament.settings.maxDraws} draws

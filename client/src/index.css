@@ -2744,6 +2744,246 @@ body::after {
   line-height: 1.4;
 }
 
+/* ============ KING OF THE HILL ("Championship") ============ */
+
+.koth-round {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.koth-round h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.koth-newking {
+  color: var(--accent-yellow);
+  font-weight: 600;
+}
+
+.koth-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.koth-table th,
+.koth-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.85rem;
+}
+
+.koth-table th {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.koth-table tr.is-me td {
+  background: rgba(255, 149, 0, 0.08);
+}
+
+.koth-res {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.koth-res.win { background: rgba(0, 255, 136, 0.15); color: var(--accent-green); }
+.koth-res.loss { background: rgba(255, 51, 102, 0.15); color: var(--accent-red); }
+.koth-res.running { background: rgba(68, 136, 255, 0.15); color: var(--accent-blue); }
+.koth-res.pending { background: var(--bg-panel-light); color: var(--text-secondary); }
+
+.koth-games {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.koth-codes {
+  margin-top: 0.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.koth-codes summary {
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-panel-light);
+  border-radius: 4px;
+  font-size: 0.82rem;
+}
+
+.koth-code-pre {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 300px;
+}
+
+.koth-code-input {
+  width: 100%;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.75rem;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  resize: vertical;
+}
+
+/* Compact admin button (Load algorithms / Update king) */
+.koth-btn-sm {
+  align-self: flex-start;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--bg-panel-light);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.koth-btn-sm:hover:not(:disabled) {
+  border-color: var(--accent-blue);
+}
+
+.koth-btn-sm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Wins-per-series (K) input - compact */
+.koth-k-input {
+  width: 160px;
+  padding: 0.6rem 0.8rem;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+}
+
+/* Hide the white native number spinners */
+.koth-k-input::-webkit-outer-spin-button,
+.koth-k-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.koth-k-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Inline action message shown next to a button (no layout shift) */
+.koth-inline-msg {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-green);
+}
+
+/* Standalone hint line (not glued to a button) */
+.koth-hint {
+  margin-top: 0.9rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.logout-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.logout-btn:disabled:hover {
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* Grouped admin sub-sections inside one container card */
+.admin-subsection {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.admin-subsection:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.admin-subsection h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Collapsible admin sections (Tournaments / Championship) */
+.admin-accordion {
+  padding: 1.25rem 1.5rem;
+}
+
+.admin-accordion-summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.admin-accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-accordion-summary::before {
+  content: '▶';
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.admin-accordion[open] .admin-accordion-summary::before {
+  transform: rotate(90deg);
+}
+
+.admin-accordion-body {
+  margin-top: 1.5rem;
+}
+
 .intro-footer {
   margin-top: 2rem;
   display: flex;

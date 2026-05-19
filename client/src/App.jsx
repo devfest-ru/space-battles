@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 import Editor from '@monaco-editor/react';
 import GameCanvas from './components/GameCanvas';
 import Arena from './components/Arena';
+import Championship from './components/Championship';
 import AdminPanel from './components/AdminPanel';
 import IntroTutorial from './components/IntroTutorial';
 import ApiDocs from './components/ApiDocs';
@@ -67,8 +68,9 @@ function App() {
   const [connected, setConnected] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [mode, setMode] = useState('sandbox'); // 'sandbox' or 'arena'
+  const [mode, setMode] = useState('sandbox'); // 'sandbox', 'arena' or 'koth'
   const [arenaState, setArenaState] = useState(null);
+  const [kothState, setKothState] = useState(null);
   const [showAdmin, setShowAdmin] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.has('admin');
@@ -121,6 +123,11 @@ function App() {
     // Arena updates only - sandbox runs locally!
     newSocket.on('arenaUpdate', (state) => {
       setArenaState(state);
+    });
+
+    // King of the Hill ("Championship" mode) updates
+    newSocket.on('kothUpdate', (state) => {
+      setKothState(state);
     });
 
     setSocket(newSocket);
@@ -339,8 +346,9 @@ function App() {
   if (showAdmin) {
     return (
       <div className="app admin-mode">
-        <AdminPanel 
-          arenaState={arenaState} 
+        <AdminPanel
+          arenaState={arenaState}
+          kothState={kothState}
           onClose={() => {
             setShowAdmin(false);
             // Remove ?admin from URL without reload
@@ -355,9 +363,21 @@ function App() {
   if (mode === 'arena') {
     return (
       <div className="app arena-mode">
-        <Arena 
-          arenaState={arenaState} 
-          onBack={() => setMode('sandbox')} 
+        <Arena
+          arenaState={arenaState}
+          onBack={() => setMode('sandbox')}
+        />
+      </div>
+    );
+  }
+
+  // Render Championship (King of the Hill) mode
+  if (mode === 'koth') {
+    return (
+      <div className="app arena-mode">
+        <Championship
+          kothState={kothState}
+          onBack={() => setMode('sandbox')}
         />
       </div>
     );
@@ -420,11 +440,17 @@ function App() {
           >
             🚀 Simulator
           </button>
-          <button 
+          <button
             className={`mode-btn ${mode === 'arena' ? 'active' : ''}`}
             onClick={() => setMode('arena')}
           >
-            🏆 Championship
+            🏆 Tournaments
+          </button>
+          <button
+            className={`mode-btn ${mode === 'koth' ? 'active' : ''}`}
+            onClick={() => setMode('koth')}
+          >
+            👑 Championship
           </button>
         </div>
         <div className="game-status">
