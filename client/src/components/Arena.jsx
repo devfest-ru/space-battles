@@ -138,11 +138,11 @@ function Arena({ arenaState, onBack }) {
     }
   };
 
-  const handleViewReplay = async (matchId, gameIndex) => {
+  const handleViewReplay = async (matchId, gameIndex, player1, player2) => {
     try {
       const response = await fetch(`${API_URL}/api/arena/replay/${matchId}/${gameIndex}`);
       const replay = await response.json();
-      setSelectedReplay(replay);
+      setSelectedReplay({ data: replay, leftName: player1, rightName: player2 });
     } catch (error) {
       showMessage('Failed to load replay', true);
     }
@@ -381,8 +381,10 @@ function Arena({ arenaState, onBack }) {
 
         {selectedReplay && (
           <div className="replay-fullscreen-overlay">
-            <ReplayViewer 
-              replay={selectedReplay} 
+            <ReplayViewer
+              replay={selectedReplay.data}
+              leftName={selectedReplay.leftName}
+              rightName={selectedReplay.rightName}
               onClose={() => setSelectedReplay(null)}
             />
           </div>
@@ -452,7 +454,7 @@ function PastTournamentCard({ tournament, number, onViewReplay, onDownloadLog })
                               </span>
                               <button 
                                 className="mini-replay-btn"
-                                onClick={(e) => { e.stopPropagation(); onViewReplay(match.id, gameIdx); }}
+                                onClick={(e) => { e.stopPropagation(); onViewReplay(match.id, gameIdx, match.player1, match.player2); }}
                               >
                                 🎬
                               </button>

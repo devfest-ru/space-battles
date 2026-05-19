@@ -104,7 +104,7 @@ function interpolateState(snap1, snap2, t) {
   return { ships, rockets, time: lerp(snap1.time, snap2.time, t) };
 }
 
-function ReplayViewer({ replay, onClose }) {
+function ReplayViewer({ replay, onClose, leftName, rightName }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(0); // Current playback time in ms
@@ -253,6 +253,21 @@ function ReplayViewer({ replay, onClose }) {
     ctx.lineWidth = 3;
     ctx.strokeRect(1.5, 1.5, width - 3, height - 3);
 
+    // Team labels - left side is player 1, right side is player 2
+    {
+      const labelSize = Math.max(28, Math.round(height * 0.04));
+      ctx.font = `bold ${labelSize}px 'JetBrains Mono', monospace`;
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = COLORS.player1.body;
+      ctx.textAlign = 'left';
+      ctx.fillText(leftName || 'Fleet Alpha', 24, 22);
+      ctx.fillStyle = COLORS.player2.body;
+      ctx.textAlign = 'right';
+      ctx.fillText(rightName || 'Fleet Omega', width - 24, 22);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+    }
+
     // Draw ships (spaceship style)
     const shipSize = finalState?.constants?.SHIP_SIZE || 30;
     for (const ship of state.ships) {
@@ -386,7 +401,7 @@ function ReplayViewer({ replay, onClose }) {
       }
     }
 
-  }, [currentTime, replay, getInterpolatedState, containerSize]);
+  }, [currentTime, replay, getInterpolatedState, containerSize, leftName, rightName]);
 
   const togglePlayback = () => {
     if (isPlaying) {
@@ -425,7 +440,11 @@ function ReplayViewer({ replay, onClose }) {
       <div className="replay-header-bar">
         <span className="replay-title">🎬 Game {replay.gameIndex + 1}</span>
         <span className="replay-result">
-          {replay.winner === 'draw' ? 'Draw' : `Fleet ${replay.winner === 1 ? 'Alpha' : 'Omega'} Wins`}
+          {replay.winner === 'draw'
+            ? 'Draw'
+            : `${replay.winner === 1
+                ? (leftName || 'Fleet Alpha')
+                : (rightName || 'Fleet Omega')} wins`}
         </span>
       </div>
 

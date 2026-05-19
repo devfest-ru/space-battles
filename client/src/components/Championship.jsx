@@ -129,14 +129,15 @@ function Championship({ kothState, onBack }) {
     }
   };
 
-  const handleViewReplay = async (seriesId, gameIndex) => {
+  const handleViewReplay = async (seriesId, gameIndex, teamName, kingName) => {
     try {
       const res = await fetch(`${API_URL}/api/koth/replay/${seriesId}/${gameIndex}`);
       if (!res.ok) {
         showMessage('Replay not found', true);
         return;
       }
-      setSelectedReplay(await res.json());
+      const data = await res.json();
+      setSelectedReplay({ data, leftName: teamName, rightName: kingLabel(kingName) });
     } catch {
       showMessage('Failed to load replay', true);
     }
@@ -333,7 +334,12 @@ function Championship({ kothState, onBack }) {
 
         {selectedReplay && (
           <div className="replay-fullscreen-overlay">
-            <ReplayViewer replay={selectedReplay} onClose={() => setSelectedReplay(null)} />
+            <ReplayViewer
+              replay={selectedReplay.data}
+              leftName={selectedReplay.leftName}
+              rightName={selectedReplay.rightName}
+              onClose={() => setSelectedReplay(null)}
+            />
           </div>
         )}
       </div>
@@ -393,7 +399,7 @@ function RoundTable({ round, registeredName, onViewReplay }) {
                         key={g.gameIndex}
                         className="mini-replay-btn"
                         title={`Game ${g.gameIndex + 1}: ${g.winner === 1 ? s.teamName : g.winner === 2 ? 'king' : 'draw'}`}
-                        onClick={() => onViewReplay(g.seriesId, g.gameIndex)}
+                        onClick={() => onViewReplay(g.seriesId, g.gameIndex, s.teamName, round.kingName)}
                       >
                         🎬 G{g.gameIndex + 1}
                       </button>

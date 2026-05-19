@@ -91,7 +91,7 @@ function MatchCard({ match, onViewReplay, onDownloadLog }) {
               <div className="game-actions">
                 <button 
                   className="replay-btn"
-                  onClick={(e) => { e.stopPropagation(); onViewReplay(match.id, index); }}
+                  onClick={(e) => { e.stopPropagation(); onViewReplay(match.id, index, match.player1, match.player2); }}
                 >
                   🎬 Replay
                 </button>
