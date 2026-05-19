@@ -331,7 +331,6 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
   const [kingCode, setKingCode] = useState('');
   const [roundK, setRoundK] = useState(2);
   const [codes, setCodes] = useState(null); // { teamsCode: [...], adminKingCode }
-  const [codesMsg, setCodesMsg] = useState(null); // inline message next to "Load all algorithms"
 
   const tournament = kothState?.tournament || null;
   const teams = kothState?.teams || [];
@@ -363,11 +362,14 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
       const result = await adminFetch(`${API_URL}/api/koth/admin/state`);
       if (!result) return;
       setCodes({ teamsCode: result.teamsCode || [], adminKingCode: result.adminKingCode });
-      setCodesMsg('✓ Algorithms loaded');
-      setTimeout(() => setCodesMsg(null), 3000);
     } catch {
       showMessage('Failed to load algorithms', true);
     }
+  };
+
+  // Lazily (re)load algorithms whenever the "All algorithms" panel is opened.
+  const handleAllAlgosToggle = (e) => {
+    if (e.target.open && adminKey) loadCodes();
   };
 
   const handleCreate = async () => {
@@ -446,18 +448,8 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
         </div>
       </div>
 
-      {/* Teams + code */}
+      {/* Teams */}
       <div className="admin-players-list">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem', marginBottom: '0.75rem' }}>
-          <button
-            className="koth-btn-sm"
-            onClick={loadCodes}
-            disabled={!adminKey}
-          >
-            🔄 Load all algorithms
-          </button>
-          {codesMsg && <span className="koth-inline-msg">{codesMsg}</span>}
-        </div>
         {teams.length === 0 ? (
           <p className="no-data">No teams registered</p>
         ) : (
@@ -486,16 +478,24 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
         )}
       </div>
 
-      {codes && (
+      {/* All algorithms - collapsible, lazily loaded on open */}
+      <details className="koth-allalgos" onToggle={handleAllAlgosToggle}>
+        <summary>📋 All algorithms</summary>
         <div className="koth-codes">
-          {[ADMIN_KING, ...teams.map(t => t.name)].map(name => (
-            <details key={name}>
-              <summary>{kothKingLabel(name)}</summary>
-              <pre className="koth-code-pre">{codeFor(name) || '(no algorithm)'}</pre>
-            </details>
-          ))}
+          {!adminKey ? (
+            <p className="no-data">Enter the admin key to view algorithms</p>
+          ) : !codes ? (
+            <p className="no-data">Loading…</p>
+          ) : (
+            [ADMIN_KING, ...teams.map(t => t.name)].map(name => (
+              <details key={name}>
+                <summary>{kothKingLabel(name)}</summary>
+                <pre className="koth-code-pre">{codeFor(name) || '(no algorithm)'}</pre>
+              </details>
+            ))
+          )}
         </div>
-      )}
+      </details>
 
       {/* Controls */}
       <div className="admin-controls" style={{ marginTop: '1.25rem' }}>

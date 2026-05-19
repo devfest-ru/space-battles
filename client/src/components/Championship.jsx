@@ -320,7 +320,6 @@ function Championship({ kothState, onBack }) {
                   <RoundTable
                     key={round.index}
                     round={round}
-                    registeredName={registeredName}
                     onViewReplay={handleViewReplay}
                   />
                 ))}
@@ -348,7 +347,7 @@ function Championship({ kothState, onBack }) {
 }
 
 // One round's series results table.
-function RoundTable({ round, registeredName, onViewReplay }) {
+function RoundTable({ round, onViewReplay }) {
   const series = round.series || [];
 
   return (
@@ -377,8 +376,14 @@ function RoundTable({ round, registeredName, onViewReplay }) {
           </thead>
           <tbody>
             {series.map(s => (
-              <tr key={s.teamName} className={s.teamName === registeredName ? 'is-me' : ''}>
-                <td>{s.teamName}</td>
+              <tr
+                key={s.teamName}
+                className={round.status === 'finished' && s.teamName === round.newKing ? 'koth-winner' : ''}
+              >
+                <td>
+                  {round.status === 'finished' && s.teamName === round.newKing ? '👑 ' : ''}
+                  {s.teamName}
+                </td>
                 <td>{s.teamWins}–{s.kingWins}{s.draws > 0 ? ` (${s.draws} draw)` : ''}</td>
                 <td>
                   {s.status === 'no_code' && <span className="koth-res pending">No algorithm</span>}

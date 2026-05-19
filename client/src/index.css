@@ -1774,13 +1774,15 @@ body::after {
   font-size: 0.7rem;
   border: 1px solid var(--border-color);
   border-radius: 3px;
-  background: transparent;
+  background: var(--bg-panel-light);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .mini-replay-btn:hover {
   border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
   background: rgba(255, 149, 0, 0.1);
 }
 
@@ -2791,7 +2793,7 @@ body::after {
   font-weight: 600;
 }
 
-.koth-table tr.is-me td {
+.koth-table tr.koth-winner td {
   background: rgba(255, 149, 0, 0.08);
 }
 
@@ -2906,11 +2908,38 @@ body::after {
   appearance: textfield;
 }
 
-/* Inline action message shown next to a button (no layout shift) */
-.koth-inline-msg {
-  font-size: 0.8rem;
+/* Collapsible "All algorithms" panel in the admin KOTH section */
+.koth-allalgos {
+  margin-top: 1.25rem;
+}
+
+.koth-allalgos > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--bg-panel-light);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--accent-green);
+  color: var(--text-primary);
+}
+
+.koth-allalgos > summary::-webkit-details-marker {
+  display: none;
+}
+
+.koth-allalgos > summary::before {
+  content: '▶';
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.koth-allalgos[open] > summary::before {
+  transform: rotate(90deg);
 }
 
 /* Standalone hint line (not glued to a button) */
