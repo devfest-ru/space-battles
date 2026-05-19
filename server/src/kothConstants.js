@@ -6,7 +6,6 @@ export const KOTH_CONSTANTS = {
 
   // Rules
   MIN_TEAMS: 1,                      // Minimum challenger teams (+ king = 2 participants)
-  MAX_DRAWS: 5,                      // Extra games allowed per series to re-play draws
   DEFAULT_K: 2,                      // Default wins-per-series suggested to admin
 
   // Timing

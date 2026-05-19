@@ -13,6 +13,14 @@ function ensureDirectories() {
   }
 }
 
+// How many draws in a row end a series early (the algorithms clearly cannot
+// touch each other). A decisive game resets the streak.
+function consecutiveDrawLimit(K) {
+  if (K <= 1) return 2;
+  if (K === 2) return 3;
+  return 4;
+}
+
 // King of the Hill tournament manager - fully isolated from the olympic ArenaManager.
 export class KothManager {
   constructor() {
@@ -299,11 +307,12 @@ export class KothManager {
     this.notifyUpdate();
 
     const K = round.K;
-    const gameLimit = (2 * K - 1) + KOTH_CONSTANTS.MAX_DRAWS;
+    const drawLimit = consecutiveDrawLimit(K);
     const seriesId = `${this.tournament.id}_r${round.index}_t${teamIndex}`;
     let gameIndex = 0;
+    let consecutiveDraws = 0;
 
-    while (series.teamWins < K && series.kingWins < K && series.gamesPlayed < gameLimit) {
+    while (series.teamWins < K && series.kingWins < K && consecutiveDraws < drawLimit) {
       const result = await this.runGame(challengerCode, round.kingCode, seriesId, gameIndex);
 
       series.games.push({
@@ -319,23 +328,26 @@ export class KothManager {
         series.teamWins++;
         series.survivingShipsInWins += result.challengerShipsAlive;
         series.winningGamesTime += result.duration;
+        consecutiveDraws = 0;
       } else if (result.winner === 2) {
         series.kingWins++;
+        consecutiveDraws = 0;
       } else {
-        series.draws++; // draw - replayed, counts for nobody
+        series.draws++;          // draw - replayed, counts for nobody
+        consecutiveDraws++;
       }
 
       gameIndex++;
 
-      if (series.teamWins < K && series.kingWins < K && series.gamesPlayed < gameLimit) {
+      if (series.teamWins < K && series.kingWins < K && consecutiveDraws < drawLimit) {
         if (KOTH_CONSTANTS.DELAY_BETWEEN_GAMES > 0) {
           await this.delay(KOTH_CONSTANTS.DELAY_BETWEEN_GAMES);
         }
       }
     }
 
-    // Series outcome: K wins decides it; if the game limit is hit first, more wins decides,
-    // and an equal score means the king holds.
+    // Series outcome: reaching K wins decides it. If the series is cut short by too many
+    // consecutive draws, more wins takes it, and an equal score means the king holds.
     if (series.teamWins >= K) {
       series.beatKing = true;
     } else if (series.kingWins >= K) {
