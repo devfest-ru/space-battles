@@ -47,4 +47,8 @@ coverage/
 
 # Server data (replays, etc.)
 server/data/
+data/
+
+# Local tooling
+.claude/
 
