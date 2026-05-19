@@ -236,6 +236,7 @@ export class KothManager {
         draws: 0,
         beatKing: false,
         survivingShipsInWins: 0,
+        winningGamesTime: 0,
         totalSeriesTime: 0,
         games: [],
       };
@@ -262,12 +263,13 @@ export class KothManager {
     } else if (winners.length === 1) {
       newKing = winners[0].teamName;
     } else {
-      // Tie-break: more surviving ships across winning games, then less total series time.
+      // Tie-break: more surviving ships across winning games, then less time spent
+      // across the winning games only.
       winners.sort((a, b) => {
         if (b.survivingShipsInWins !== a.survivingShipsInWins) {
           return b.survivingShipsInWins - a.survivingShipsInWins;
         }
-        return a.totalSeriesTime - b.totalSeriesTime;
+        return a.winningGamesTime - b.winningGamesTime;
       });
       newKing = winners[0].teamName;
     }
@@ -316,6 +318,7 @@ export class KothManager {
       if (result.winner === 1) {
         series.teamWins++;
         series.survivingShipsInWins += result.challengerShipsAlive;
+        series.winningGamesTime += result.duration;
       } else if (result.winner === 2) {
         series.kingWins++;
       } else {
