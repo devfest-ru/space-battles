@@ -15,13 +15,36 @@
 Space Battles — обучающая игра, где участники пишут JavaScript-код для управления флотом
 космических кораблей. Два флота по 5 кораблей сражаются на поле 3000x1500.
 
-Текущая задача проекта описана в `memory_bank/project_vision.md` — режим «Царь горы».
+## memory_bank/
+
+Папка `memory_bank/` — банк знаний о проекте: ТЗ, видение, согласованные с заказчиком решения.
+Это источник правды о том, ЧТО строим (в отличие от CLAUDE.md, который про то, КАК работать).
+
+- Текущая задача описана в `memory_bank/project_vision.md` — режим «Царь горы».
+- **Перед началом работы — прочитать содержимое `memory_bank/`.**
+- **Папку нужно поддерживать в актуальном состоянии:** если требования меняются или
+  заказчик что-то уточняет — сразу обновить соответствующий файл, иначе документ устареет
+  и будет вводить в заблуждение.
 
 ## Структура (monorepo, npm workspaces)
 
 - `shared/` — общий игровой движок (`GameEngine.js`, `gameConstants.js`). Используется и сервером, и клиентом.
 - `server/` — Node.js бэкенд: Express + Socket.io (`src/index.js`), турнирная логика (`src/ArenaManager.js`).
 - `client/` — React + Vite фронтенд. Точка входа `src/App.jsx`.
+
+## Карта ключевых файлов
+
+- `client/src/App.jsx` — корневой компонент, переключение вкладок/режимов (состояние `mode`).
+- `client/src/components/Arena.jsx` — экран турнира.
+- `client/src/components/AdminPanel.jsx` — админ-панель (открывается по `?admin`).
+- `client/src/components/TournamentBracket.jsx` — отображение турнирной сетки.
+- `client/src/components/ReplayViewer.jsx` — просмотрщик реплеев.
+- `client/src/components/GameCanvas.jsx` — отрисовка боя на canvas.
+- `server/src/index.js` — Express + Socket.io, все API-эндпоинты.
+- `server/src/ArenaManager.js` — турнирная логика и хранение данных.
+- `server/src/tournamentConstants.js` — константы турнира.
+- `shared/GameEngine.js` — игровой движок.
+- `shared/gameConstants.js` — игровые константы.
 
 ## Сборка и запуск (локально)
 
@@ -37,6 +60,20 @@ npm run dev:client      # только клиент
 - Сервер: `http://localhost:3001`
 - Клиент: `http://localhost:5173`
 
+## Локальное тестирование
+
+Автотестов в проекте нет (в `package.json` нет `test`-скрипта). Проверка — ручная.
+
+1. `npm run install:all` — один раз.
+2. `npm run dev` — поднимает сервер (порт 3001) и клиент (порт 5173).
+3. Открыть `http://localhost:5173`:
+   - вкладка Simulator — песочница, работает локально в браузере без сервера;
+   - вкладка Championship/Tournaments — турнир, требует запущенный сервер.
+4. Админ-панель: `http://localhost:5173/?admin`. Локальный ключ по умолчанию —
+   `dev-admin-key-change-in-production`.
+5. Проверка турнирного сценария: зарегистрировать игроков, отправить им код,
+   из админ-панели запустить турнир, посмотреть результаты и реплеи.
+
 ## Прод-сборка
 
 ```bash
@@ -51,6 +88,7 @@ npm run start:server    # запуск сервера (node server/src/index.js)
 - **Фронтенд** — отдельный **Static Site**, добавлен вручную в дашборде Render (в `render.yaml` его нет).
   Сборка `npm run build:client`, каталог публикации `client/dist` (стандартный вывод Vite).
 - **Авто-деплой:** push в ветку `main` → Render пересобирает автоматически. Заходить в дашборд Render для деплоя не нужно.
+- **Workflow:** все коммиты идут прямо в `main`. Любой push в `main` уходит на прод.
 - GitHub: `https://github.com/devfest-ru/space-battles`
 
 ## Переменные окружения
