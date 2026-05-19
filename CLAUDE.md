@@ -29,20 +29,24 @@ Space Battles — обучающая игра, где участники пиш�
 ## Структура (monorepo, npm workspaces)
 
 - `shared/` — общий игровой движок (`GameEngine.js`, `gameConstants.js`). Используется и сервером, и клиентом.
-- `server/` — Node.js бэкенд: Express + Socket.io (`src/index.js`), турнирная логика (`src/ArenaManager.js`).
+- `server/` — Node.js бэкенд: Express + Socket.io (`src/index.js`), олимпийская турнирная логика
+  (`src/ArenaManager.js`) и логика режима «Царь горы» (`src/KothManager.js`).
 - `client/` — React + Vite фронтенд. Точка входа `src/App.jsx`.
 
 ## Карта ключевых файлов
 
 - `client/src/App.jsx` — корневой компонент, переключение вкладок/режимов (состояние `mode`).
-- `client/src/components/Arena.jsx` — экран турнира.
+- `client/src/components/Arena.jsx` — экран олимпийского турнира (вкладка «Tournaments»).
+- `client/src/components/Championship.jsx` — экран режима «Царь горы» (вкладка «Championship»).
 - `client/src/components/AdminPanel.jsx` — админ-панель (открывается по `?admin`).
 - `client/src/components/TournamentBracket.jsx` — отображение турнирной сетки.
 - `client/src/components/ReplayViewer.jsx` — просмотрщик реплеев.
 - `client/src/components/GameCanvas.jsx` — отрисовка боя на canvas.
-- `server/src/index.js` — Express + Socket.io, все API-эндпоинты.
-- `server/src/ArenaManager.js` — турнирная логика и хранение данных.
-- `server/src/tournamentConstants.js` — константы турнира.
+- `server/src/index.js` — Express + Socket.io, все API-эндпоинты (`/api/arena/*` и `/api/koth/*`).
+- `server/src/ArenaManager.js` — олимпийская турнирная логика и хранение данных.
+- `server/src/KothManager.js` — логика режима «Царь горы» (изолирована от олимпийской).
+- `server/src/tournamentConstants.js` — константы олимпийского турнира.
+- `server/src/kothConstants.js` — константы режима «Царь горы».
 - `shared/GameEngine.js` — игровой движок.
 - `shared/gameConstants.js` — игровые константы.
 
@@ -68,7 +72,7 @@ npm run dev:client      # только клиент
 2. `npm run dev` — поднимает сервер (порт 3001) и клиент (порт 5173).
 3. Открыть `http://localhost:5173`:
    - вкладка Simulator — песочница, работает локально в браузере без сервера;
-   - вкладка Championship/Tournaments — турнир, требует запущенный сервер.
+   - вкладки Tournaments и Championship — бои считаются на сервере, требуют запущенный сервер.
 4. Админ-панель: `http://localhost:5173/?admin`. Локальный ключ по умолчанию —
    `dev-admin-key-change-in-production`.
 5. Проверка турнирного сценария: зарегистрировать игроков, отправить им код,
@@ -117,8 +121,12 @@ npm run start:server    # запуск сервера (node server/src/index.js)
 
 ## Игровая механика (кратко)
 
-- Режим **Simulator** — тренировочная песочница, движок крутится локально в браузере, 1 на 1.
-- Режим **Championship/Tournaments** — турнир, бои считаются на сервере через `ArenaManager`.
+Три вкладки/режима:
+- **Simulator** — тренировочная песочница, движок крутится локально в браузере, 1 на 1.
+- **Tournaments** — олимпийский турнир, бои считаются на сервере через `ArenaManager`.
+- **Championship** — режим «Царь горы», бои считаются на сервере через `KothManager`.
+  Изолирован от олимпийской системы. ТЗ — в `memory_bank/project_vision.md`.
+
 - Перезарядка оружия: `RELOAD_TIME` = 2000 мс, делится на долю здоровья — повреждённый корабль
   перезаряжается дольше.
 - В Simulator кнопка **STOP** останавливает бой и сбрасывает позиции/здоровье, но сохраняет код;
