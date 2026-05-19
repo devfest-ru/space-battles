@@ -2825,6 +2825,8 @@ body::after {
 
 .koth-codes summary {
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
   padding: 0.4rem 0.6rem;
   background: var(--bg-panel-light);
   border-radius: 4px;
@@ -2916,6 +2918,8 @@ body::after {
 .koth-allalgos > summary {
   cursor: pointer;
   list-style: none;
+  user-select: none;
+  -webkit-user-select: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2990,6 +2994,8 @@ body::after {
 .admin-accordion-summary {
   cursor: pointer;
   list-style: none;
+  user-select: none;
+  -webkit-user-select: none;
   display: flex;
   align-items: center;
   gap: 0.6rem;
