@@ -40,7 +40,7 @@ for (const ship of state.myShips) {
 }`;
 
 // Human-readable king name (the starting king is an admin pseudo-team).
-function kingLabel(name) {
+export function kingLabel(name) {
   if (!name) return '—';
   return name === ADMIN_KING ? 'Admin (starting king)' : name;
 }
@@ -273,61 +273,7 @@ function Championship({ kothState, onBack }) {
 
         {activeTab === 'standings' && (
           <div className="bracket-panel">
-            {!tournament && (
-              <div className="next-tournament-info">
-                <h3>📋 Waiting for the tournament to start</h3>
-                <p className="waiting-message">
-                  ⏳ The admin will create the tournament and set the starting king.
-                </p>
-              </div>
-            )}
-
-            {tournament && (
-              <>
-                <div className="current-champion-banner">
-                  <span className="champion-label">
-                    {tournament.status === 'completed' ? 'Tournament Winner' : 'Current King of the Hill'}
-                  </span>
-                  <span className="champion-name">
-                    👑 {kingLabel(tournament.status === 'completed' ? tournament.winner : tournament.kingName)}
-                  </span>
-                </div>
-
-                {tournament.status === 'completed' && (
-                  <div className="live-tournament-banner">
-                    <span>🏁 Tournament finished</span>
-                  </div>
-                )}
-
-                {currentRound && tournament.status === 'running' && (
-                  <div className="live-tournament-banner">
-                    {currentRound.status === 'collecting' && (
-                      <span>📥 Round {currentRound.index + 1} — teams are loading algorithms (first to {currentRound.K} wins)</span>
-                    )}
-                    {currentRound.status === 'battling' && (
-                      <>
-                        <span className="live-dot"></span>
-                        <span>Round {currentRound.index + 1} battles in progress…</span>
-                      </>
-                    )}
-                    {currentRound.status === 'finished' && (
-                      <span>✅ Round {currentRound.index + 1} finished — waiting for the next round</span>
-                    )}
-                  </div>
-                )}
-
-                {[...rounds].reverse().map(round => (
-                  <RoundTable
-                    key={round.index}
-                    round={round}
-                    onViewReplay={handleViewReplay}
-                  />
-                ))}
-                {rounds.length === 0 && (
-                  <p className="waiting-message">⏳ Waiting for the first round to start.</p>
-                )}
-              </>
-            )}
+            <KothStandings kothState={kothState} onViewReplay={handleViewReplay} />
           </div>
         )}
 
@@ -343,6 +289,73 @@ function Championship({ kothState, onBack }) {
         )}
       </div>
     </div>
+  );
+}
+
+// Standings panel: current king banner, round status banner, and list of all
+// rounds (newest first). Reused both by the player view and the admin
+// "broadcast" view in AdminPanel.
+export function KothStandings({ kothState, onViewReplay }) {
+  const tournament = kothState?.tournament || null;
+  const rounds = tournament?.rounds || [];
+  const currentRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
+
+  if (!tournament) {
+    return (
+      <div className="next-tournament-info">
+        <h3>📋 Waiting for the tournament to start</h3>
+        <p className="waiting-message">
+          ⏳ The admin will create the tournament and set the starting king.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="current-champion-banner">
+        <span className="champion-label">
+          {tournament.status === 'completed' ? 'Tournament Winner' : 'Current King of the Hill'}
+        </span>
+        <span className="champion-name">
+          👑 {kingLabel(tournament.status === 'completed' ? tournament.winner : tournament.kingName)}
+        </span>
+      </div>
+
+      {tournament.status === 'completed' && (
+        <div className="live-tournament-banner">
+          <span>🏁 Tournament finished</span>
+        </div>
+      )}
+
+      {currentRound && tournament.status === 'running' && (
+        <div className="live-tournament-banner">
+          {currentRound.status === 'collecting' && (
+            <span>📥 Round {currentRound.index + 1} — teams are loading algorithms (first to {currentRound.K} wins)</span>
+          )}
+          {currentRound.status === 'battling' && (
+            <>
+              <span className="live-dot"></span>
+              <span>Round {currentRound.index + 1} battles in progress…</span>
+            </>
+          )}
+          {currentRound.status === 'finished' && (
+            <span>✅ Round {currentRound.index + 1} finished — waiting for the next round</span>
+          )}
+        </div>
+      )}
+
+      {[...rounds].reverse().map(round => (
+        <RoundTable
+          key={round.index}
+          round={round}
+          onViewReplay={onViewReplay}
+        />
+      ))}
+      {rounds.length === 0 && (
+        <p className="waiting-message">⏳ Waiting for the first round to start.</p>
+      )}
+    </>
   );
 }
 

@@ -3024,6 +3024,13 @@ body::after {
   margin-top: 1.5rem;
 }
 
+/* Blue variant — used for the third top-level admin accordion (broadcast
+   standings). Same structure as .admin-accordion, only the summary color
+   differs so the host can tell it apart from the red settings accordions. */
+.admin-accordion-blue .admin-accordion-summary {
+  color: var(--accent-blue);
+}
+
 .intro-footer {
   margin-top: 2rem;
   display: flex;

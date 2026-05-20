@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import ReplayViewer from './ReplayViewer';
+import { KothStandings, kingLabel } from './Championship';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -321,6 +323,13 @@ function AdminPanel({ arenaState, kothState, onClose }) {
           showMessage={showMessage}
           adminKey={adminKey}
         />
+
+        {/* Broadcast-only standings: kept separate so the host can hide the
+            settings accordions on stream and show only this. */}
+        <KothStandingsSection
+          kothState={kothState}
+          showMessage={showMessage}
+        />
       </div>
     </div>
   );
@@ -595,6 +604,47 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
         </button>
       </div>
       </div>
+    </details>
+  );
+}
+
+// Third top-level admin accordion: broadcast-friendly standings view.
+// Independent of the settings accordions so the host can close the noisy
+// control sections during a screen share and only show this one.
+function KothStandingsSection({ kothState, showMessage }) {
+  const [selectedReplay, setSelectedReplay] = useState(null);
+
+  const handleViewReplay = async (seriesId, gameIndex, teamName, kingName) => {
+    try {
+      const res = await fetch(`${API_URL}/api/koth/replay/${seriesId}/${gameIndex}`);
+      if (!res.ok) {
+        showMessage('Replay not found', true);
+        return;
+      }
+      const data = await res.json();
+      setSelectedReplay({ data, leftName: teamName, rightName: kingLabel(kingName) });
+    } catch {
+      showMessage('Failed to load replay', true);
+    }
+  };
+
+  return (
+    <details className="admin-section admin-accordion admin-accordion-blue">
+      <summary className="admin-accordion-summary">📺 Championship — Standings (broadcast view)</summary>
+      <div className="admin-accordion-body">
+        <KothStandings kothState={kothState} onViewReplay={handleViewReplay} />
+      </div>
+
+      {selectedReplay && (
+        <div className="replay-fullscreen-overlay">
+          <ReplayViewer
+            replay={selectedReplay.data}
+            leftName={selectedReplay.leftName}
+            rightName={selectedReplay.rightName}
+            onClose={() => setSelectedReplay(null)}
+          />
+        </div>
+      )}
     </details>
   );
 }
