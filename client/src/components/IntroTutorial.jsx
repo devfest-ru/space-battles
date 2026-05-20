@@ -1,51 +1,53 @@
 import React, { useState } from 'react';
+import { useT } from '../i18n/LanguageContext';
 
 function IntroTutorial({ onClose }) {
+  const { t } = useT();
   const [step, setStep] = useState(0);
 
   const steps = [
     {
-      title: "Welcome to Space Battles",
-      icon: "🚀",
+      title: t('tutorial.steps.welcome.title'),
+      icon: '🚀',
       content: (
         <>
           <p className="intro-highlight">
-            Program AI algorithms to command your space fleet in epic battles!
+            {t('tutorial.steps.welcome.highlight')}
           </p>
           <div className="intro-features">
             <div className="intro-feature">
               <span className="feature-icon">🤖</span>
-              <span>Write JavaScript code to control your ships</span>
+              <span>{t('tutorial.steps.welcome.f1')}</span>
             </div>
             <div className="intro-feature">
               <span className="feature-icon">🎯</span>
-              <span>Aim, shoot, dodge, and outmaneuver opponents</span>
+              <span>{t('tutorial.steps.welcome.f2')}</span>
             </div>
             <div className="intro-feature">
               <span className="feature-icon">🏆</span>
-              <span>Compete against other players in tournaments</span>
+              <span>{t('tutorial.steps.welcome.f3')}</span>
             </div>
           </div>
         </>
-      )
+      ),
     },
     {
-      title: "Your Ship's API",
-      icon: "📡",
+      title: t('tutorial.steps.api.title'),
+      icon: '📡',
       content: (
         <>
           <p className="intro-highlight">
-            Each ship provides sensor data and accepts commands every frame.
+            {t('tutorial.steps.api.highlight')}
           </p>
           <div className="intro-code-block">
-            <div className="code-section-title">📥 Ship Sensors (Input)</div>
+            <div className="code-section-title">{t('tutorial.steps.api.sensorsTitle')}</div>
             <pre>{`ship.x, ship.y      // Position
 ship.bodyAngle      // Direction (degrees)
 ship.health         // Remaining health (1-3)
 ship.canShoot       // Ready to fire?`}</pre>
           </div>
           <div className="intro-code-block">
-            <div className="code-section-title">📤 Ship Commands (Output)</div>
+            <div className="code-section-title">{t('tutorial.steps.api.commandsTitle')}</div>
             <pre>{`return {
   rotate: 1 / -1,   // Turn right / left
   boost: 1,         // Extra speed
@@ -53,102 +55,130 @@ ship.canShoot       // Ready to fire?`}</pre>
 }`}</pre>
           </div>
         </>
-      )
+      ),
     },
     {
-      title: "🎮 Simulator Mode",
-      icon: "🔬",
+      title: t('tutorial.steps.simulator.title'),
+      icon: '🔬',
       content: (
         <>
           <p className="intro-highlight">
-            Test and refine your algorithms in a safe environment.
+            {t('tutorial.steps.simulator.highlight')}
           </p>
           <div className="intro-steps">
             <div className="intro-step">
               <span className="step-num">1</span>
-              <span>Write your AI code in the <strong>Fleet Alpha</strong> editor</span>
+              <span>
+                {t('tutorial.steps.simulator.s1Pre')}
+                <strong>{t('tutorial.steps.simulator.s1Strong')}</strong>
+                {t('tutorial.steps.simulator.s1Post')}
+              </span>
             </div>
             <div className="intro-step">
               <span className="step-num">2</span>
-              <span>Set up an opponent in <strong>Fleet Omega</strong> (or use sample code)</span>
+              <span>
+                {t('tutorial.steps.simulator.s2Pre')}
+                <strong>{t('tutorial.steps.simulator.s2Strong')}</strong>
+                {t('tutorial.steps.simulator.s2Post')}
+              </span>
             </div>
             <div className="intro-step">
               <span className="step-num">3</span>
-              <span>Click <strong>▶ Start Battle</strong> and watch them fight!</span>
+              <span>
+                {t('tutorial.steps.simulator.s3Pre')}
+                <strong>{t('tutorial.steps.simulator.s3Strong')}</strong>
+                {t('tutorial.steps.simulator.s3Post')}
+              </span>
             </div>
             <div className="intro-step">
               <span className="step-num">4</span>
-              <span>Use <strong>Mission Log</strong> to analyze and debug</span>
+              <span>
+                {t('tutorial.steps.simulator.s4Pre')}
+                <strong>{t('tutorial.steps.simulator.s4Strong')}</strong>
+                {t('tutorial.steps.simulator.s4Post')}
+              </span>
             </div>
           </div>
         </>
-      )
+      ),
     },
     {
-      title: "🏆 Championship Mode",
-      icon: "⚔️",
+      title: t('tutorial.steps.championship.title'),
+      icon: '⚔️',
       content: (
         <>
           <p className="intro-highlight">
-            Compete against real players in tournament brackets!
+            {t('tutorial.steps.championship.highlight')}
           </p>
           <div className="intro-steps">
             <div className="intro-step">
               <span className="step-num">1</span>
-              <span><strong>Enter Arena</strong> — Register with your name</span>
+              <span>
+                <strong>{t('tutorial.steps.championship.s1Strong')}</strong>
+                {t('tutorial.steps.championship.s1Post')}
+              </span>
             </div>
             <div className="intro-step">
               <span className="step-num">2</span>
-              <span><strong>Upload Code</strong> — Submit your battle algorithm</span>
+              <span>
+                <strong>{t('tutorial.steps.championship.s2Strong')}</strong>
+                {t('tutorial.steps.championship.s2Post')}
+              </span>
             </div>
             <div className="intro-step">
               <span className="step-num">3</span>
-              <span><strong>Wait for Tournament</strong> — Battles run automatically</span>
+              <span>
+                <strong>{t('tutorial.steps.championship.s3Strong')}</strong>
+                {t('tutorial.steps.championship.s3Post')}
+              </span>
             </div>
             <div className="intro-step">
               <span className="step-num">4</span>
-              <span><strong>Watch Replays</strong> — Learn from victories and defeats</span>
+              <span>
+                <strong>{t('tutorial.steps.championship.s4Strong')}</strong>
+                {t('tutorial.steps.championship.s4Post')}
+              </span>
             </div>
           </div>
           <p className="intro-tip">
-            💡 Tip: Test your code in Simulator before entering Championship!
+            {t('tutorial.steps.championship.tip')}
           </p>
         </>
-      )
+      ),
     },
     {
-      title: "Battle Tips",
-      icon: "💡",
+      title: t('tutorial.steps.tips.title'),
+      icon: '💡',
       content: (
         <>
           <p className="intro-highlight">
-            Master these concepts to dominate the battlefield!
+            {t('tutorial.steps.tips.highlight')}
           </p>
           <div className="intro-tips-grid">
             <div className="tip-card">
               <span className="tip-icon">🎯</span>
-              <strong>Lead Your Target</strong>
-              <span>Aim where enemies will be, not where they are</span>
+              <strong>{t('tutorial.steps.tips.t1Title')}</strong>
+              <span>{t('tutorial.steps.tips.t1Desc')}</span>
             </div>
             <div className="tip-card">
               <span className="tip-icon">🔄</span>
-              <strong>Keep Moving</strong>
-              <span>Ships always move forward — use rotation to dodge</span>
+              <strong>{t('tutorial.steps.tips.t2Title')}</strong>
+              <span>{t('tutorial.steps.tips.t2Desc')}</span>
             </div>
             <div className="tip-card">
               <span className="tip-icon">❤️</span>
-              <strong>Health Matters</strong>
-              <span>Damaged ships rotate and reload slower</span>
+              <strong>{t('tutorial.steps.tips.t3Title')}</strong>
+              <span>{t('tutorial.steps.tips.t3Desc')}</span>
             </div>
             <div className="tip-card">
               <span className="tip-icon">🎪</span>
-              <strong>Focus Fire</strong>
-              <span>Concentrate attacks on one enemy at a time</span>
+              <strong>{t('tutorial.steps.tips.t4Title')}</strong>
+              <span>{t('tutorial.steps.tips.t4Desc')}</span>
             </div>
           </div>
         </>
-      )
-    }
+      ),
+    },
   ];
 
   const currentStep = steps[step];
@@ -158,12 +188,12 @@ ship.canShoot       // Ready to fire?`}</pre>
     if (isLastStep) {
       onClose();
     } else {
-      setStep(s => s + 1);
+      setStep((s) => s + 1);
     }
   };
 
   const handlePrev = () => {
-    setStep(s => Math.max(0, s - 1));
+    setStep((s) => Math.max(0, s - 1));
   };
 
   const handleSkip = () => {
@@ -174,9 +204,9 @@ ship.canShoot       // Ready to fire?`}</pre>
     <div className="intro-overlay">
       <div className="intro-modal">
         <button className="intro-skip" onClick={handleSkip}>
-          Skip Tutorial
+          {t('tutorial.skip')}
         </button>
-        
+
         <div className="intro-header">
           <span className="intro-icon">{currentStep.icon}</span>
           <h2>{currentStep.title}</h2>
@@ -189,22 +219,22 @@ ship.canShoot       // Ready to fire?`}</pre>
         <div className="intro-footer">
           <div className="intro-dots">
             {steps.map((_, i) => (
-              <span 
-                key={i} 
+              <span
+                key={i}
                 className={`intro-dot ${i === step ? 'active' : ''} ${i < step ? 'completed' : ''}`}
                 onClick={() => setStep(i)}
               />
             ))}
           </div>
-          
+
           <div className="intro-buttons">
             {step > 0 && (
               <button className="intro-btn secondary" onClick={handlePrev}>
-                ← Back
+                {t('tutorial.back')}
               </button>
             )}
             <button className="intro-btn primary" onClick={handleNext}>
-              {isLastStep ? "Start Playing! 🚀" : "Next →"}
+              {isLastStep ? t('tutorial.start') : t('tutorial.next')}
             </button>
           </div>
         </div>
@@ -214,4 +244,3 @@ ship.canShoot       // Ready to fire?`}</pre>
 }
 
 export default IntroTutorial;
-

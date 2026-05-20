@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import TournamentBracket from './TournamentBracket';
 import ReplayViewer from './ReplayViewer';
+import { useT } from '../i18n/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -46,6 +47,7 @@ for (const ship of state.myShips) {
 }`;
 
 function Arena({ arenaState, onBack }) {
+  const { t } = useT();
   const [playerName, setPlayerName] = useState('');
   const [registeredName, setRegisteredName] = useState(null);
   const [code, setCode] = useState(DEFAULT_ARENA_CODE);
@@ -74,19 +76,19 @@ function Arena({ arenaState, onBack }) {
 
   const handleRegister = async () => {
     if (!playerName.trim()) {
-      showMessage('Please enter a name', true);
+      showMessage(t('arena.messages.enterName'), true);
       return;
     }
 
     const trimmedName = playerName.trim();
-    
+
     // Check if player already exists
     const existingPlayer = arenaState?.players?.find(p => p.name === trimmedName);
     if (existingPlayer) {
       // Login as existing player
       setRegisteredName(trimmedName);
       localStorage.setItem('arenaPlayerName', trimmedName);
-      showMessage(`Welcome back, ${trimmedName}!`);
+      showMessage(t('arena.messages.welcomeBack', { name: trimmedName }));
       return;
     }
 
@@ -102,19 +104,19 @@ function Arena({ arenaState, onBack }) {
       if (result.success) {
         setRegisteredName(trimmedName);
         localStorage.setItem('arenaPlayerName', trimmedName);
-        showMessage('Registered successfully! Now submit your code below.');
+        showMessage(t('arena.messages.registered'));
         // Stay on register tab so user can immediately enter their code
       } else {
         showMessage(result.error, true);
       }
     } catch (error) {
-      showMessage('Failed to register', true);
+      showMessage(t('arena.messages.failedRegister'), true);
     }
   };
 
   const handleSubmitCode = async () => {
     if (!registeredName) {
-      showMessage('Please register first', true);
+      showMessage(t('arena.messages.registerFirst'), true);
       return;
     }
 
@@ -127,14 +129,14 @@ function Arena({ arenaState, onBack }) {
       const result = await response.json();
 
       if (result.success) {
-        showMessage('Code submitted! You can view the tournament bracket.');
+        showMessage(t('arena.messages.codeSubmitted'));
         // After submitting code, switch to bracket view
         setActiveTab('bracket');
       } else {
         showMessage(result.error, true);
       }
     } catch (error) {
-      showMessage('Failed to submit code', true);
+      showMessage(t('arena.messages.failedSubmit'), true);
     }
   };
 
@@ -144,7 +146,7 @@ function Arena({ arenaState, onBack }) {
       const replay = await response.json();
       setSelectedReplay({ data: replay, leftName: player1, rightName: player2 });
     } catch (error) {
-      showMessage('Failed to load replay', true);
+      showMessage(t('arena.messages.failedReplay'), true);
     }
   };
 
@@ -162,8 +164,8 @@ function Arena({ arenaState, onBack }) {
   return (
     <div className="arena">
       <div className="arena-header">
-        <button className="back-btn" onClick={onBack}>← Back to Simulator</button>
-        <h1>🏆 Tournaments</h1>
+        <button className="back-btn" onClick={onBack}>{t('arena.backToSimulator')}</button>
+        <h1>{t('arena.title')}</h1>
         {message && (
           <div className={`arena-message ${message.isError ? 'error' : 'success'}`}>
             {message.text}
@@ -172,17 +174,17 @@ function Arena({ arenaState, onBack }) {
       </div>
 
       <div className="arena-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'register' ? 'active' : ''} ${!registeredName ? 'step-current' : currentPlayer?.hasCode ? 'step-done' : 'step-current'}`}
           onClick={() => setActiveTab('register')}
         >
-          {!registeredName ? '1️⃣' : currentPlayer?.hasCode ? '✅' : '2️⃣'} {!registeredName ? 'Enlist' : 'Your Code'}
+          {!registeredName ? t('arena.tabs.enlist') : currentPlayer?.hasCode ? t('arena.tabs.yourCodeDone') : t('arena.tabs.yourCodeCurrent')}
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'bracket' ? 'active' : ''}`}
           onClick={() => setActiveTab('bracket')}
         >
-          💥 Combat
+          {t('arena.tabs.combat')}
         </button>
       </div>
 
@@ -190,12 +192,12 @@ function Arena({ arenaState, onBack }) {
         {activeTab === 'register' && (
           <div className="register-panel">
             <div className="register-section">
-              <h2>🚀 Join the Fleet</h2>
+              <h2>{t('arena.join.title')}</h2>
               {!registeredName ? (
                 <div className="register-form">
                   <input
                     type="text"
-                    placeholder="Enter callsign (new or existing)"
+                    placeholder={t('arena.join.placeholder')}
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
                     maxLength={20}
@@ -203,18 +205,18 @@ function Arena({ arenaState, onBack }) {
                     onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
                   />
                   <button onClick={handleRegister} disabled={isTournamentRunning}>
-                    Enlist
+                    {t('arena.join.enlistBtn')}
                   </button>
                 </div>
               ) : (
                 <div className="registered-info">
-                  <span className="player-badge">✓ Playing as: <strong>{registeredName}</strong></span>
+                  <span className="player-badge">{t('arena.join.playingAs', { name: '' })}<strong>{registeredName}</strong></span>
                   {currentPlayer?.hasCode ? (
-                    <span className="code-badge">✓ Code Submitted</span>
+                    <span className="code-badge">{t('arena.join.codeSubmitted')}</span>
                   ) : (
-                    <span className="code-pending-badge">⬇️ Submit your code below to enter tournament</span>
+                    <span className="code-pending-badge">{t('arena.join.codePending')}</span>
                   )}
-                  <button 
+                  <button
                     className="logout-btn"
                     onClick={() => {
                       setRegisteredName(null);
@@ -222,7 +224,7 @@ function Arena({ arenaState, onBack }) {
                       setPlayerName('');
                     }}
                   >
-                    Switch Player
+                    {t('arena.join.switchPlayer')}
                   </button>
                 </div>
               )}
@@ -230,7 +232,7 @@ function Arena({ arenaState, onBack }) {
 
             {registeredName && (
               <div className="code-section">
-                <h2>💻 Your Algorithm {!currentPlayer?.hasCode && <span className="step-hint">← Step 2: Write and submit your code!</span>}</h2>
+                <h2>{t('arena.code.title')} {!currentPlayer?.hasCode && <span className="step-hint">{t('arena.code.stepHint')}</span>}</h2>
                 <div className="code-editor-wrapper">
                   <Editor
                     height="400px"
@@ -249,32 +251,32 @@ function Arena({ arenaState, onBack }) {
                     }}
                   />
                 </div>
-                <button 
+                <button
                   className="submit-code-btn"
                   onClick={handleSubmitCode}
                   disabled={isTournamentRunning}
                 >
-                  {currentPlayer?.hasCode ? '🔄 Update Code' : '📤 Submit Code'}
+                  {currentPlayer?.hasCode ? t('arena.code.update') : t('arena.code.submit')}
                 </button>
                 {isTournamentRunning && (
-                  <p className="tournament-warning">⚠️ Cannot modify code during active tournament</p>
+                  <p className="tournament-warning">{t('arena.code.lockedWarning')}</p>
                 )}
               </div>
             )}
 
             <div className="players-section">
-              <h2>👥 Fleet Commanders ({arenaState?.players?.length || 0})</h2>
+              <h2>{t('arena.players.title', { n: arenaState?.players?.length || 0 })}</h2>
               <div className="players-list">
                 {arenaState?.players?.map(player => (
                   <div key={player.name} className={`player-item ${player.name === registeredName ? 'is-me' : ''}`}>
                     <span className="player-name">{player.name}</span>
                     <span className={`player-status ${player.hasCode ? 'ready' : 'pending'}`}>
-                      {player.hasCode ? '✓ Ready' : '⏳ No code'}
+                      {player.hasCode ? t('arena.players.ready') : t('arena.players.noCode')}
                     </span>
                   </div>
                 ))}
                 {(!arenaState?.players || arenaState.players.length === 0) && (
-                  <p className="no-players">No players registered yet</p>
+                  <p className="no-players">{t('arena.players.empty')}</p>
                 )}
               </div>
             </div>
@@ -286,7 +288,7 @@ function Arena({ arenaState, onBack }) {
             {/* Current Supreme Commander Banner */}
             {arenaState?.currentChampion && (
               <div className="current-champion-banner">
-                <span className="champion-label">Supreme Commander</span>
+                <span className="champion-label">{t('arena.bracket.supremeCommander')}</span>
                 <span className="champion-name">👑 {arenaState.currentChampion}</span>
               </div>
             )}
@@ -295,10 +297,10 @@ function Arena({ arenaState, onBack }) {
             {tournament?.status === 'running' && (
               <div className="live-tournament-banner">
                 <span className="live-dot"></span>
-                <span>Tournament in progress...</span>
+                <span>{t('arena.bracket.inProgress')}</span>
                 {tournament.settings && (
                   <span className="tournament-settings-badge">
-                    Best of {tournament.settings.bestOf} • Max {tournament.settings.maxDraws} draws
+                    {t('arena.bracket.settings', { bestOf: tournament.settings.bestOf, maxDraws: tournament.settings.maxDraws })}
                   </span>
                 )}
               </div>
@@ -306,8 +308,8 @@ function Arena({ arenaState, onBack }) {
 
             {/* Tournament Bracket (only while running) */}
             {tournament?.status === 'running' && (
-              <TournamentBracket 
-                tournament={tournament} 
+              <TournamentBracket
+                tournament={tournament}
                 onViewReplay={handleViewReplay}
                 onDownloadLog={handleDownloadLog}
               />
@@ -316,44 +318,44 @@ function Arena({ arenaState, onBack }) {
             {/* Next Battle Arena Section */}
             {(!tournament || tournament.status === 'completed') && (
               <div className="next-tournament-info">
-                <h3>📋 Next Tournament</h3>
+                <h3>{t('arena.bracket.nextTournament')}</h3>
                 <div className="next-tournament-stats">
                   <div className="stat-box ready">
                     <span className="stat-number">{playersWithCode.length}</span>
-                    <span className="stat-label">Ready to play</span>
+                    <span className="stat-label">{t('arena.bracket.readyToPlay')}</span>
                   </div>
                   <div className="stat-box pending">
                     <span className="stat-number">{playersWithoutCode.length}</span>
-                    <span className="stat-label">Need to submit code</span>
+                    <span className="stat-label">{t('arena.bracket.needToSubmit')}</span>
                   </div>
                 </div>
                 <div className="player-lists">
                   <div className="player-list-section">
-                    <h4>✅ Ready ({playersWithCode.length})</h4>
+                    <h4>{t('arena.bracket.readyHeader', { n: playersWithCode.length })}</h4>
                     <div className="player-chips">
                       {playersWithCode.map(p => (
                         <span key={p.name} className="player-chip ready">{p.name}</span>
                       ))}
-                      {playersWithCode.length === 0 && <span className="no-one">No one yet</span>}
+                      {playersWithCode.length === 0 && <span className="no-one">{t('arena.bracket.noOneYet')}</span>}
                     </div>
                   </div>
                   <div className="player-list-section">
-                    <h4>⏳ Waiting for code ({playersWithoutCode.length})</h4>
+                    <h4>{t('arena.bracket.waitingHeader', { n: playersWithoutCode.length })}</h4>
                     <div className="player-chips">
                       {playersWithoutCode.map(p => (
                         <span key={p.name} className="player-chip pending">{p.name}</span>
                       ))}
-                      {playersWithoutCode.length === 0 && <span className="no-one">Everyone ready!</span>}
+                      {playersWithoutCode.length === 0 && <span className="no-one">{t('arena.bracket.everyoneReady')}</span>}
                     </div>
                   </div>
                 </div>
                 {playersWithCode.length >= 2 ? (
                   <p className="waiting-message">
-                    ⏳ Waiting for admin to start the tournament...
+                    {t('arena.bracket.waitingAdmin')}
                   </p>
                 ) : (
                   <p className="waiting-message warning">
-                    ⚠️ Need at least {2 - playersWithCode.length} more player(s) with code to start
+                    {t('arena.bracket.needMore', { n: 2 - playersWithCode.length })}
                   </p>
                 )}
               </div>
@@ -362,12 +364,12 @@ function Arena({ arenaState, onBack }) {
             {/* Past Tournaments */}
             {arenaState?.tournamentHistory && arenaState.tournamentHistory.length > 0 && (
               <div className="past-tournaments">
-                <h3>📜 Past Tournaments</h3>
+                <h3>{t('arena.bracket.pastTournaments')}</h3>
                 <div className="past-tournaments-list">
-                  {arenaState.tournamentHistory.map((t, index) => (
-                    <PastTournamentCard 
-                      key={t.id} 
-                      tournament={t} 
+                  {arenaState.tournamentHistory.map((tour, index) => (
+                    <PastTournamentCard
+                      key={tour.id}
+                      tournament={tour}
                       number={arenaState.tournamentHistory.length - index}
                       onViewReplay={handleViewReplay}
                       onDownloadLog={handleDownloadLog}
@@ -396,13 +398,14 @@ function Arena({ arenaState, onBack }) {
 
 // Past Tournament Card with expandable bracket
 function PastTournamentCard({ tournament, number, onViewReplay, onDownloadLog }) {
+  const { t } = useT();
   const [expanded, setExpanded] = useState(false);
 
   const getRoundName = (index, totalRounds) => {
-    if (index === totalRounds - 1) return 'Final';
-    if (index === totalRounds - 2) return 'Semifinals';
-    if (index === totalRounds - 3) return 'Quarterfinals';
-    return `Round ${index + 1}`;
+    if (index === totalRounds - 1) return t('bracket.round.final');
+    if (index === totalRounds - 2) return t('bracket.round.semifinals');
+    if (index === totalRounds - 3) return t('bracket.round.quarterfinals');
+    return t('bracket.round.round', { n: index + 1 });
   };
 
   return (
@@ -410,7 +413,7 @@ function PastTournamentCard({ tournament, number, onViewReplay, onDownloadLog })
       <div className="past-tournament-header" onClick={() => setExpanded(!expanded)}>
         <span className="past-tournament-number">#{number}</span>
         <span className="past-tournament-winner">🏆 {tournament.winner}</span>
-        <span className="past-tournament-players">{tournament.playerCount} players</span>
+        <span className="past-tournament-players">{t('arena.bracket.playersCount', { n: tournament.playerCount })}</span>
         {tournament.settings && (
           <span className="past-tournament-settings">
             Bo{tournament.settings.bestOf}
@@ -435,12 +438,12 @@ function PastTournamentCard({ tournament, number, onViewReplay, onDownloadLog })
                     <div key={match.id} className={`past-match-card ${match.status}`}>
                       <div className="past-match-players">
                         <span className={match.winner === match.player1 ? 'winner' : ''}>
-                          {match.player1 || 'TBD'}
+                          {match.player1 || t('bracket.tbd')}
                           {match.p1Wins !== undefined && <span className="score"> {match.p1Wins}</span>}
                         </span>
-                        <span className="vs">vs</span>
+                        <span className="vs">{t('common.vs')}</span>
                         <span className={match.winner === match.player2 ? 'winner' : ''}>
-                          {match.player2 || 'TBD'}
+                          {match.player2 || t('bracket.tbd')}
                           {match.p2Wins !== undefined && <span className="score"> {match.p2Wins}</span>}
                         </span>
                       </div>
@@ -450,9 +453,9 @@ function PastTournamentCard({ tournament, number, onViewReplay, onDownloadLog })
                             <div key={gameIdx} className="past-game-row">
                               <span className="game-label">G{gameIdx + 1}</span>
                               <span className={`game-result ${game.winner === 1 ? 'p1' : game.winner === 2 ? 'p2' : ''}`}>
-                                {game.winner === 1 ? match.player1 : game.winner === 2 ? match.player2 : 'Draw'}
+                                {game.winner === 1 ? match.player1 : game.winner === 2 ? match.player2 : t('bracket.draw')}
                               </span>
-                              <button 
+                              <button
                                 className="mini-replay-btn"
                                 onClick={(e) => { e.stopPropagation(); onViewReplay(match.id, gameIdx, match.player1, match.player2); }}
                               >

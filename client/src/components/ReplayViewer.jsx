@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useT } from '../i18n/LanguageContext';
 
 const COLORS = {
   background: '#050510',
@@ -105,6 +106,7 @@ function interpolateState(snap1, snap2, t) {
 }
 
 function ReplayViewer({ replay, onClose, leftName, rightName }) {
+  const { t } = useT();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(0); // Current playback time in ms
@@ -260,10 +262,10 @@ function ReplayViewer({ replay, onClose, leftName, rightName }) {
       ctx.textBaseline = 'top';
       ctx.fillStyle = COLORS.player1.body;
       ctx.textAlign = 'left';
-      ctx.fillText(leftName || 'Fleet Alpha', 24, 22);
+      ctx.fillText(leftName || t('fleet.alpha'), 24, 22);
       ctx.fillStyle = COLORS.player2.body;
       ctx.textAlign = 'right';
-      ctx.fillText(rightName || 'Fleet Omega', width - 24, 22);
+      ctx.fillText(rightName || t('fleet.omega'), width - 24, 22);
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
     }
@@ -401,7 +403,7 @@ function ReplayViewer({ replay, onClose, leftName, rightName }) {
       }
     }
 
-  }, [currentTime, replay, getInterpolatedState, containerSize, leftName, rightName]);
+  }, [currentTime, replay, getInterpolatedState, containerSize, leftName, rightName, t]);
 
   const togglePlayback = () => {
     if (isPlaying) {
@@ -424,27 +426,29 @@ function ReplayViewer({ replay, onClose, leftName, rightName }) {
   };
 
   if (!replay) {
-    return <div className="replay-empty">No replay data</div>;
+    return <div className="replay-empty">{t('replay.empty')}</div>;
   }
 
   return (
     <div className="replay-viewer-fullscreen">
       {/* Close button */}
       {onClose && (
-        <button className="replay-close-btn" onClick={onClose} title="Close replay">
+        <button className="replay-close-btn" onClick={onClose} title={t('replay.close')}>
           ✕
         </button>
       )}
 
       {/* Header info */}
       <div className="replay-header-bar">
-        <span className="replay-title">🎬 Game {replay.gameIndex + 1}</span>
+        <span className="replay-title">{t('replay.title', { n: replay.gameIndex + 1 })}</span>
         <span className="replay-result">
           {replay.winner === 'draw'
-            ? 'Draw'
-            : `${replay.winner === 1
-                ? (leftName || 'Fleet Alpha')
-                : (rightName || 'Fleet Omega')} wins`}
+            ? t('replay.draw')
+            : t('replay.wins', {
+                name: replay.winner === 1
+                  ? (leftName || t('fleet.alpha'))
+                  : (rightName || t('fleet.omega'))
+              })}
         </span>
       </div>
 

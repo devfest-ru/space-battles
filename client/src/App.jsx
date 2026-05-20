@@ -7,6 +7,8 @@ import Championship from './components/Championship';
 import AdminPanel from './components/AdminPanel';
 import IntroTutorial from './components/IntroTutorial';
 import ApiDocs from './components/ApiDocs';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import { useT } from './i18n/LanguageContext';
 import { soundManager } from './utils/sounds';
 import { GameEngine, GAME_CONSTANTS } from '@space-battles/shared';
 
@@ -55,10 +57,11 @@ for (const ship of state.myShips) {
 }`;
 
 function App() {
+  const { t } = useT();
   // Local game engine for sandbox mode (each client has their own!)
   const gameEngineRef = useRef(null);
   const gameLoopRef = useRef(null);
-  
+
   const [socket, setSocket] = useState(null);
   const [gameState, setGameState] = useState(null);
   const [player1Code, setPlayer1Code] = useState(DEFAULT_CODE_P1);
@@ -334,10 +337,10 @@ function App() {
 
   const getGameStatus = () => {
     // Sandbox mode runs locally, no server connection needed
-    if (!gameState) return { text: 'Loading...', status: 'waiting' };
-    if (gameState.winner) return { text: `Battle Complete`, status: 'ended' };
-    if (gameState.isRunning) return { text: 'Engage!', status: 'running' };
-    return { text: 'Standing By', status: 'waiting' };
+    if (!gameState) return { text: t('status.loading'), status: 'waiting' };
+    if (gameState.winner) return { text: t('status.battleComplete'), status: 'ended' };
+    if (gameState.isRunning) return { text: t('status.engage'), status: 'running' };
+    return { text: t('status.standingBy'), status: 'waiting' };
   };
 
   const status = getGameStatus();
@@ -391,20 +394,20 @@ function App() {
           <div className="logo">
             Space <span>Battles</span>
           </div>
-          <button 
-            className="icon-btn" 
+          <button
+            className="icon-btn"
             onClick={() => setShowTutorial(true)}
-            title="Show Tutorial"
+            title={t('header.showTutorial')}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8.5 8a4 4 0 0 1 7 2c0 2.5-3.5 3.5-3.5 5.5"/>
               <circle cx="12" cy="18.5" r="1" fill="currentColor" stroke="none"/>
             </svg>
           </button>
-          <button 
-            className="icon-btn" 
+          <button
+            className="icon-btn"
             onClick={() => setShowApiDocs(true)}
-            title="API Documentation"
+            title={t('header.apiDocs')}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -413,10 +416,10 @@ function App() {
               <line x1="8" y1="11" x2="14" y2="11"/>
             </svg>
           </button>
-          <button 
+          <button
             className={`icon-btn ${soundEnabled ? 'sound-on' : 'sound-off'}`}
             onClick={toggleSound}
-            title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+            title={soundEnabled ? t('header.muteSounds') : t('header.enableSounds')}
           >
             {soundEnabled ? (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -432,25 +435,29 @@ function App() {
               </svg>
             )}
           </button>
+          <LanguageSwitcher />
         </div>
         <div className="mode-selector">
-          <button 
+          <button
             className={`mode-btn ${mode === 'sandbox' ? 'active' : ''}`}
             onClick={() => setMode('sandbox')}
           >
-            🚀 Simulator
+            <span className="mode-btn-icon">🚀</span>
+            <span className="mode-btn-label">{t('mode.simulator')}</span>
           </button>
           <button
             className={`mode-btn ${mode === 'arena' ? 'active' : ''}`}
             onClick={() => setMode('arena')}
           >
-            🏆 Tournaments
+            <span className="mode-btn-icon">🏆</span>
+            <span className="mode-btn-label">{t('mode.tournaments')}</span>
           </button>
           <button
             className={`mode-btn ${mode === 'koth' ? 'active' : ''}`}
             onClick={() => setMode('koth')}
           >
-            👑 Championship
+            <span className="mode-btn-icon">👑</span>
+            <span className="mode-btn-label">{t('mode.championship')}</span>
           </button>
         </div>
         <div className="game-status">
@@ -469,14 +476,14 @@ function App() {
         <div className="player-panel player-1">
           <div className="player-header">
             <div className="player-name">
-              <span>◆</span> Fleet Alpha
+              <span>◆</span> {t('fleet.alpha')}
             </div>
             <div className="player-ships">
               {getPlayerShips(1).map((ship, i) => (
-                <div 
-                  key={ship.id} 
+                <div
+                  key={ship.id}
                   className={`ship-indicator ${!ship.isAlive ? 'destroyed' : ''}`}
-                  title={ship.isAlive ? `Shield: ${ship.health}/3` : 'Destroyed'}
+                  title={ship.isAlive ? t('fleet.shieldTitle', { h: ship.health, max: 3 }) : t('fleet.destroyedTitle')}
                 >
                   {ship.isAlive ? ship.health : '✕'}
                 </div>
@@ -502,12 +509,12 @@ function App() {
                 }}
               />
             </div>
-            <button 
+            <button
               className={`submit-btn ${player1Submitted ? 'submitted' : ''}`}
               onClick={() => submitCode(1, player1Code)}
               disabled={gameState?.isRunning}
             >
-              {player1Submitted ? '✓ Code Submitted' : 'Submit Code'}
+              {player1Submitted ? t('submit.codeSubmitted') : t('submit.code')}
             </button>
           </div>
         </div>
@@ -521,10 +528,10 @@ function App() {
                 constants={GAME_CONSTANTS}
               />
               {isFullscreen && (
-                <button 
+                <button
                   className="fullscreen-exit-btn"
                   onClick={() => setIsFullscreen(false)}
-                  title="Exit fullscreen"
+                  title={t('header.exitFullscreen')}
                 >
                   ✕
                 </button>
@@ -532,12 +539,12 @@ function App() {
               {gameState?.winner && (
                 <div className="winner-overlay">
                   <div className={`winner-message ${
-                    gameState.winner === 1 ? 'player-1' : 
+                    gameState.winner === 1 ? 'player-1' :
                     gameState.winner === 2 ? 'player-2' : 'draw'
                   }`}>
-                    {gameState.winner === 'draw' 
-                      ? 'Stalemate!' 
-                      : `Fleet ${gameState.winner === 1 ? 'Alpha' : 'Omega'} Victorious!`}
+                    {gameState.winner === 'draw'
+                      ? t('battle.stalemate')
+                      : gameState.winner === 1 ? t('battle.alphaVictorious') : t('battle.omegaVictorious')}
                   </div>
                 </div>
               )}
@@ -545,38 +552,38 @@ function App() {
           </div>
 
           <div className="game-controls">
-            <button 
+            <button
               className="control-btn start"
               onClick={startGame}
               disabled={!player1Submitted || !player2Submitted || gameState?.isRunning}
             >
-              ⚡ Start
+              {t('controls.start')}
             </button>
-            <button 
+            <button
               className="control-btn stop"
               onClick={stopGame}
               disabled={!gameState?.isRunning}
             >
-              ⏹ Stop
+              {t('controls.stop')}
             </button>
-            <button 
+            <button
               className="control-btn reset"
               onClick={resetGame}
             >
-              ↻ Reset
+              {t('controls.reset')}
             </button>
-            <button 
+            <button
               className="control-btn fullscreen"
               onClick={() => setIsFullscreen(!isFullscreen)}
             >
-              {isFullscreen ? '⊙ Exit Full Screen' : '⛶ Full Screen'}
+              {isFullscreen ? t('controls.exitFullScreen') : t('controls.fullScreen')}
             </button>
-            <button 
+            <button
               className="control-btn log"
               onClick={downloadBattleLog}
-              title="Download battle log for analysis"
+              title={t('controls.logTitle')}
             >
-              📋 Log
+              {t('controls.log')}
             </button>
           </div>
 
@@ -586,14 +593,14 @@ function App() {
         <div className="player-panel player-2">
           <div className="player-header">
             <div className="player-name">
-              <span>◆</span> Fleet Omega
+              <span>◆</span> {t('fleet.omega')}
             </div>
             <div className="player-ships">
               {getPlayerShips(2).map((ship, i) => (
-                <div 
-                  key={ship.id} 
+                <div
+                  key={ship.id}
                   className={`ship-indicator ${!ship.isAlive ? 'destroyed' : ''}`}
-                  title={ship.isAlive ? `Shield: ${ship.health}/3` : 'Destroyed'}
+                  title={ship.isAlive ? t('fleet.shieldTitle', { h: ship.health, max: 3 }) : t('fleet.destroyedTitle')}
                 >
                   {ship.isAlive ? ship.health : '✕'}
                 </div>
@@ -619,12 +626,12 @@ function App() {
                 }}
               />
             </div>
-            <button 
+            <button
               className={`submit-btn ${player2Submitted ? 'submitted' : ''}`}
               onClick={() => submitCode(2, player2Code)}
               disabled={gameState?.isRunning}
             >
-              {player2Submitted ? '✓ Code Submitted' : 'Submit Code'}
+              {player2Submitted ? t('submit.codeSubmitted') : t('submit.code')}
             </button>
           </div>
         </div>

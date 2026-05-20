@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import ReplayViewer from './ReplayViewer';
+import LanguageSwitcher from './LanguageSwitcher';
 import { KothStandings, kingLabel } from './Championship';
+import { useT } from '../i18n/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const ADMIN_KING = '__admin__';
 
-function kothKingLabel(name) {
-  if (!name) return '—';
-  return name === ADMIN_KING ? 'Admin (starting king)' : name;
-}
-
 function AdminPanel({ arenaState, kothState, onClose }) {
+  const { t } = useT();
   const [message, setMessage] = useState(null);
   const [bestOf, setBestOf] = useState(3);
   const [maxDraws, setMaxDraws] = useState(3);
@@ -40,10 +38,10 @@ function AdminPanel({ arenaState, kothState, onClose }) {
   // Helper for admin API calls
   const adminFetch = async (url, options = {}) => {
     if (!adminKey) {
-      showMessage('Please enter Admin API Key', true);
+      showMessage(t('admin.messages.enterKey'), true);
       return null;
     }
-    
+
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -52,12 +50,12 @@ function AdminPanel({ arenaState, kothState, onClose }) {
         'X-Admin-Key': adminKey,
       },
     });
-    
+
     if (response.status === 401) {
-      showMessage('Invalid Admin API Key', true);
+      showMessage(t('admin.messages.invalidKey'), true);
       return null;
     }
-    
+
     return response.json();
   };
 
@@ -71,46 +69,46 @@ function AdminPanel({ arenaState, kothState, onClose }) {
       if (!result) return;
 
       if (result.success) {
-        showMessage(`Tournament started! (Best of ${bestOf}, Max ${maxDraws} draws)`);
+        showMessage(t('admin.tournaments.messages.started', { bestOf, maxDraws }));
       } else {
         showMessage(result.error, true);
       }
     } catch (error) {
-      showMessage('Failed to start tournament', true);
+      showMessage(t('admin.tournaments.messages.failedStart'), true);
     }
   };
 
   const handleClearArena = async () => {
-    if (!confirm('Clear ALL arena data? This will remove all players, tournament history, and replays.')) return;
+    if (!confirm(t('admin.tournaments.messages.confirmClear'))) return;
     try {
       const result = await adminFetch(`${API_URL}/api/arena/clear`, { method: 'POST' });
-      
+
       if (!result) return;
-      
+
       if (result.success) {
-        showMessage('Arena cleared! Fresh start.');
+        showMessage(t('admin.tournaments.messages.cleared'));
       } else {
         showMessage(result.error, true);
       }
     } catch (error) {
-      showMessage('Failed to clear arena', true);
+      showMessage(t('admin.tournaments.messages.failedClear'), true);
     }
   };
 
   const handleResetArena = async () => {
-    if (!confirm('Reset arena? This will clear player codes but keep registrations.')) return;
+    if (!confirm(t('admin.tournaments.messages.confirmReset'))) return;
     try {
       const result = await adminFetch(`${API_URL}/api/arena/reset`, { method: 'POST' });
-      
+
       if (!result) return;
-      
+
       if (result.success) {
-        showMessage('Arena reset! Players kept, codes cleared.');
+        showMessage(t('admin.tournaments.messages.resetDone'));
       } else {
         showMessage(result.error, true);
       }
     } catch (error) {
-      showMessage('Failed to reset arena', true);
+      showMessage(t('admin.tournaments.messages.failedReset'), true);
     }
   };
 
@@ -121,8 +119,11 @@ function AdminPanel({ arenaState, kothState, onClose }) {
   return (
     <div className="admin-panel">
       <div className="admin-header">
-        <h1>⚙️ Admin Panel</h1>
-        <button className="close-admin-btn" onClick={onClose}>✕ Close</button>
+        <h1>{t('admin.title')}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <LanguageSwitcher />
+          <button className="close-admin-btn" onClick={onClose}>{t('admin.close')}</button>
+        </div>
       </div>
 
       {message && (
@@ -134,18 +135,18 @@ function AdminPanel({ arenaState, kothState, onClose }) {
       <div className="admin-content">
         {/* Admin Authentication */}
         <div className="admin-section">
-          <h2>🔐 Authentication</h2>
+          <h2>{t('admin.auth.title')}</h2>
           <div className="admin-key-input">
-            <label htmlFor="adminKey">Admin API Key</label>
+            <label htmlFor="adminKey">{t('admin.auth.label')}</label>
             <div className="key-input-wrapper">
               <input
                 id="adminKey"
                 type={keyVisible ? 'text' : 'password'}
                 value={adminKey}
                 onChange={(e) => handleKeyChange(e.target.value)}
-                placeholder="Enter admin key..."
+                placeholder={t('admin.auth.placeholder')}
               />
-              <button 
+              <button
                 className="toggle-key-btn"
                 onClick={() => setKeyVisible(!keyVisible)}
                 type="button"
@@ -153,38 +154,38 @@ function AdminPanel({ arenaState, kothState, onClose }) {
                 {keyVisible ? '🙈' : '👁️'}
               </button>
             </div>
-            <span className="setting-hint">Required for admin actions</span>
+            <span className="setting-hint">{t('admin.auth.hint')}</span>
           </div>
         </div>
 
         {/* Tournaments - olympic bracket system (collapsible container) */}
         <details className="admin-section admin-accordion">
-          <summary className="admin-accordion-summary">🏆 Tournaments</summary>
+          <summary className="admin-accordion-summary">{t('admin.tournaments.summary')}</summary>
           <div className="admin-accordion-body">
 
         {/* Status Overview */}
         <div className="admin-subsection">
-          <h3>📊 Status</h3>
+          <h3>{t('admin.tournaments.status.title')}</h3>
           <div className="status-grid">
             <div className="status-item">
-              <span className="status-label">Registered Players</span>
+              <span className="status-label">{t('admin.tournaments.status.registered')}</span>
               <span className="status-value">{players.length}</span>
             </div>
             <div className="status-item">
-              <span className="status-label">Ready (with code)</span>
+              <span className="status-label">{t('admin.tournaments.status.ready')}</span>
               <span className="status-value highlight">{playersWithCode.length}</span>
             </div>
             <div className="status-item">
-              <span className="status-label">Tournament Status</span>
+              <span className="status-label">{t('admin.tournaments.status.tournament')}</span>
               <span className={`status-value ${tournament?.status || 'none'}`}>
-                {tournament?.status === 'running' ? '🔴 Running' :
-                 tournament?.status === 'completed' ? '✅ Completed' :
-                 '⏸️ None'}
+                {tournament?.status === 'running' ? t('admin.tournaments.status.running') :
+                 tournament?.status === 'completed' ? t('admin.tournaments.status.completed') :
+                 t('admin.tournaments.status.none')}
               </span>
             </div>
             {tournament?.winner && (
               <div className="status-item">
-                <span className="status-label">Winner</span>
+                <span className="status-label">{t('admin.tournaments.status.winner')}</span>
                 <span className="status-value winner">🏆 {tournament.winner}</span>
               </div>
             )}
@@ -193,17 +194,17 @@ function AdminPanel({ arenaState, kothState, onClose }) {
 
         {/* Players List */}
         <div className="admin-subsection">
-          <h3>👥 Players ({players.length})</h3>
+          <h3>{t('admin.tournaments.players.title', { n: players.length })}</h3>
           <div className="admin-players-list">
             {players.length === 0 ? (
-              <p className="no-data">No players registered</p>
+              <p className="no-data">{t('admin.tournaments.players.empty')}</p>
             ) : (
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Code</th>
-                    <th>Registered</th>
+                    <th>{t('admin.tournaments.players.col.name')}</th>
+                    <th>{t('admin.tournaments.players.col.code')}</th>
+                    <th>{t('admin.tournaments.players.col.registered')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -212,7 +213,7 @@ function AdminPanel({ arenaState, kothState, onClose }) {
                       <td>{player.name}</td>
                       <td>
                         <span className={`code-status ${player.hasCode ? 'yes' : 'no'}`}>
-                          {player.hasCode ? '✓ Ready' : '✗ Pending'}
+                          {player.hasCode ? t('admin.tournaments.players.codeReady') : t('admin.tournaments.players.codePending')}
                         </span>
                       </td>
                       <td>{new Date(player.registeredAt).toLocaleString()}</td>
@@ -227,27 +228,27 @@ function AdminPanel({ arenaState, kothState, onClose }) {
         {/* Tournament Settings */}
         {!tournament && (
           <div className="admin-subsection">
-            <h3>⚙️ Tournament Settings</h3>
+            <h3>{t('admin.tournaments.settings.title')}</h3>
             <div className="settings-grid">
               <div className="setting-item">
-                <label htmlFor="bestOf">Best of</label>
-                <select 
-                  id="bestOf" 
-                  value={bestOf} 
+                <label htmlFor="bestOf">{t('admin.tournaments.settings.bestOf')}</label>
+                <select
+                  id="bestOf"
+                  value={bestOf}
                   onChange={(e) => setBestOf(Number(e.target.value))}
                 >
-                  <option value={1}>1 game</option>
-                  <option value={3}>3 games</option>
-                  <option value={5}>5 games</option>
-                  <option value={7}>7 games</option>
+                  <option value={1}>{t('admin.tournaments.settings.gameOne')}</option>
+                  <option value={3}>{t('admin.tournaments.settings.gameMany', { n: 3 })}</option>
+                  <option value={5}>{t('admin.tournaments.settings.gameMany', { n: 5 })}</option>
+                  <option value={7}>{t('admin.tournaments.settings.gameMany', { n: 7 })}</option>
                 </select>
-                <span className="setting-hint">Games per match</span>
+                <span className="setting-hint">{t('admin.tournaments.settings.bestOfHint')}</span>
               </div>
               <div className="setting-item">
-                <label htmlFor="maxDraws">Max Draws</label>
-                <select 
-                  id="maxDraws" 
-                  value={maxDraws} 
+                <label htmlFor="maxDraws">{t('admin.tournaments.settings.maxDraws')}</label>
+                <select
+                  id="maxDraws"
+                  value={maxDraws}
                   onChange={(e) => setMaxDraws(Number(e.target.value))}
                 >
                   <option value={1}>1</option>
@@ -256,7 +257,7 @@ function AdminPanel({ arenaState, kothState, onClose }) {
                   <option value={5}>5</option>
                   <option value={10}>10</option>
                 </select>
-                <span className="setting-hint">Before draw breaker</span>
+                <span className="setting-hint">{t('admin.tournaments.settings.maxDrawsHint')}</span>
               </div>
             </div>
           </div>
@@ -264,21 +265,21 @@ function AdminPanel({ arenaState, kothState, onClose }) {
 
         {/* Tournament Controls */}
         <div className="admin-subsection">
-          <h3>🎮 Tournament Controls</h3>
+          <h3>{t('admin.tournaments.controls.title')}</h3>
           <div className="admin-controls">
             {!tournament && (
-              <button 
+              <button
                 className="admin-btn start"
                 onClick={handleStartTournament}
                 disabled={playersWithCode.length < 2 || !adminKey}
               >
-                🚀 Start Tournament (Best of {bestOf})
+                {t('admin.tournaments.controls.start', { bestOf })}
                 <span className="btn-hint">
-                  {!adminKey 
-                    ? 'Enter admin key first'
-                    : playersWithCode.length < 2 
-                      ? `Need ${2 - playersWithCode.length} more player(s) with code`
-                      : `${playersWithCode.length} players ready`}
+                  {!adminKey
+                    ? t('admin.tournaments.controls.hintNoKey')
+                    : playersWithCode.length < 2
+                      ? t('admin.tournaments.controls.hintNeed', { n: 2 - playersWithCode.length })
+                      : t('admin.tournaments.controls.hintReady', { n: playersWithCode.length })}
                 </span>
               </button>
             )}
@@ -286,27 +287,27 @@ function AdminPanel({ arenaState, kothState, onClose }) {
             {tournament?.status === 'running' && (
               <div className="running-notice">
                 <span className="live-dot"></span>
-                Tournament is running... Please wait for completion.
+                {t('admin.tournaments.controls.running')}
               </div>
             )}
 
             {(!tournament?.status || tournament?.status === 'completed') && (
               <>
-                <button 
-                  className="admin-btn warning" 
+                <button
+                  className="admin-btn warning"
                   onClick={handleResetArena}
                   disabled={!adminKey}
                 >
-                  🔄 Reset Arena
-                  <span className="btn-hint">Clears codes, keeps players</span>
+                  {t('admin.tournaments.controls.reset')}
+                  <span className="btn-hint">{t('admin.tournaments.controls.resetHint')}</span>
                 </button>
-                <button 
-                  className="admin-btn danger" 
+                <button
+                  className="admin-btn danger"
                   onClick={handleClearArena}
                   disabled={!adminKey}
                 >
-                  🗑️ Clear All Data
-                  <span className="btn-hint">Removes everything</span>
+                  {t('admin.tournaments.controls.clear')}
+                  <span className="btn-hint">{t('admin.tournaments.controls.clearHint')}</span>
                 </button>
               </>
             )}
@@ -337,6 +338,7 @@ function AdminPanel({ arenaState, kothState, onClose }) {
 
 // Admin controls for the King of the Hill ("Championship") mode.
 function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
+  const { t } = useT();
   const [kingCode, setKingCode] = useState('');
   const [roundK, setRoundK] = useState(2);
   const [codes, setCodes] = useState(null); // { teamsCode: [...], adminKingCode }
@@ -355,13 +357,13 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
       });
       if (!result) return null;
       if (result.success) {
-        showMessage(result.message || 'Done');
+        showMessage(result.message || t('admin.koth.messages.done'));
       } else {
         showMessage(result.error, true);
       }
       return result;
     } catch {
-      showMessage('Request failed', true);
+      showMessage(t('admin.koth.messages.requestFailed'), true);
       return null;
     }
   };
@@ -372,7 +374,7 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
       if (!result) return;
       setCodes({ teamsCode: result.teamsCode || [], adminKingCode: result.adminKingCode });
     } catch {
-      showMessage('Failed to load algorithms', true);
+      showMessage(t('admin.koth.messages.failedAlgos'), true);
     }
   };
 
@@ -383,7 +385,7 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
 
   const handleCreate = async () => {
     if (!kingCode.trim()) {
-      showMessage('Enter the starting king algorithm', true);
+      showMessage(t('admin.koth.messages.enterStartingKing'), true);
       return;
     }
     await post(`${API_URL}/api/koth/tournament/create`, { kingCode });
@@ -391,7 +393,7 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
 
   const handleUpdateKing = async () => {
     if (!kingCode.trim()) {
-      showMessage('Enter the king algorithm', true);
+      showMessage(t('admin.koth.messages.enterKing'), true);
       return;
     }
     await post(`${API_URL}/api/koth/king/code`, { code: kingCode });
@@ -406,12 +408,12 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
   };
 
   const handleFinish = async () => {
-    if (!confirm('Finish the tournament? The current king is declared the winner.')) return;
+    if (!confirm(t('admin.koth.messages.confirmFinish'))) return;
     await post(`${API_URL}/api/koth/tournament/finish`, {});
   };
 
   const handleReset = async () => {
-    if (!confirm('Reset King of the Hill? Removes all teams, the tournament and replays.')) return;
+    if (!confirm(t('admin.koth.messages.confirmReset'))) return;
     const result = await post(`${API_URL}/api/koth/reset`, {});
     if (result?.success) setCodes(null);
   };
@@ -424,34 +426,34 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
 
   return (
     <details className="admin-section admin-accordion">
-      <summary className="admin-accordion-summary">👑 Championship — King of the Hill</summary>
+      <summary className="admin-accordion-summary">{t('admin.koth.summary')}</summary>
       <div className="admin-accordion-body">
 
       {/* Status */}
       <div className="status-grid">
         <div className="status-item">
-          <span className="status-label">Registered Teams</span>
+          <span className="status-label">{t('admin.koth.status.registered')}</span>
           <span className="status-value">{teams.length}</span>
         </div>
         <div className="status-item">
-          <span className="status-label">Tournament</span>
+          <span className="status-label">{t('admin.koth.status.tournament')}</span>
           <span className={`status-value ${tournament?.status || 'none'}`}>
-            {tournament?.status === 'running' ? '🔴 Running' :
-             tournament?.status === 'completed' ? '✅ Completed' :
-             '⏸️ Not started'}
+            {tournament?.status === 'running' ? t('admin.koth.status.running') :
+             tournament?.status === 'completed' ? t('admin.koth.status.completed') :
+             t('admin.koth.status.notStarted')}
           </span>
         </div>
         <div className="status-item">
-          <span className="status-label">Current King</span>
+          <span className="status-label">{t('admin.koth.status.currentKing')}</span>
           <span className="status-value highlight">
-            {tournament ? kothKingLabel(tournament.kingName) : '—'}
+            {tournament ? kingLabel(tournament.kingName, t) : '—'}
           </span>
         </div>
         <div className="status-item">
-          <span className="status-label">Current Round</span>
+          <span className="status-label">{t('admin.koth.status.currentRound')}</span>
           <span className="status-value">
             {currentRound
-              ? `#${currentRound.index + 1} · ${currentRound.status}`
+              ? t('admin.koth.status.roundFormat', { n: currentRound.index + 1, status: currentRound.status })
               : '—'}
           </span>
         </div>
@@ -460,26 +462,26 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
       {/* Teams */}
       <div className="admin-players-list">
         {teams.length === 0 ? (
-          <p className="no-data">No teams registered</p>
+          <p className="no-data">{t('admin.koth.teams.empty')}</p>
         ) : (
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Team</th>
-                <th>Algorithm</th>
-                <th>Updated</th>
+                <th>{t('admin.koth.teams.col.team')}</th>
+                <th>{t('admin.koth.teams.col.algorithm')}</th>
+                <th>{t('admin.koth.teams.col.updated')}</th>
               </tr>
             </thead>
             <tbody>
-              {teams.map(t => (
-                <tr key={t.name}>
-                  <td>{t.name === tournament?.kingName ? '👑 ' : ''}{t.name}</td>
+              {teams.map(tm => (
+                <tr key={tm.name}>
+                  <td>{tm.name === tournament?.kingName ? '👑 ' : ''}{tm.name}</td>
                   <td>
-                    <span className={`code-status ${t.hasCode ? 'yes' : 'no'}`}>
-                      {t.hasCode ? '✓ Loaded' : '✗ None'}
+                    <span className={`code-status ${tm.hasCode ? 'yes' : 'no'}`}>
+                      {tm.hasCode ? t('admin.koth.teams.loaded') : t('admin.koth.teams.none')}
                     </span>
                   </td>
-                  <td>{t.codeUpdatedAt ? new Date(t.codeUpdatedAt).toLocaleString() : '—'}</td>
+                  <td>{tm.codeUpdatedAt ? new Date(tm.codeUpdatedAt).toLocaleString() : t('admin.koth.teams.updatedNone')}</td>
                 </tr>
               ))}
             </tbody>
@@ -489,17 +491,17 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
 
       {/* All algorithms - collapsible, lazily loaded on open */}
       <details className="koth-allalgos" onToggle={handleAllAlgosToggle}>
-        <summary>📋 All algorithms</summary>
+        <summary>{t('admin.koth.allAlgos.summary')}</summary>
         <div className="koth-codes">
           {!adminKey ? (
-            <p className="no-data">Enter the admin key to view algorithms</p>
+            <p className="no-data">{t('admin.koth.allAlgos.enterKey')}</p>
           ) : !codes ? (
-            <p className="no-data">Loading…</p>
+            <p className="no-data">{t('admin.koth.allAlgos.loading')}</p>
           ) : (
-            [ADMIN_KING, ...teams.map(t => t.name)].map(name => (
+            [ADMIN_KING, ...teams.map(tm => tm.name)].map(name => (
               <details key={name}>
-                <summary>{kothKingLabel(name)}</summary>
-                <pre className="koth-code-pre">{codeFor(name) || '(no algorithm)'}</pre>
+                <summary>{kingLabel(name, t)}</summary>
+                <pre className="koth-code-pre">{codeFor(name) || t('admin.koth.allAlgos.empty')}</pre>
               </details>
             ))
           )}
@@ -511,13 +513,13 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
         {!tournament && (
           <>
             <div className="setting-item" style={{ width: '100%' }}>
-              <label htmlFor="kothKingCode">Starting King Algorithm</label>
+              <label htmlFor="kothKingCode">{t('admin.koth.controls.startingKingLabel')}</label>
               <textarea
                 id="kothKingCode"
                 className="koth-code-input"
                 value={kingCode}
                 onChange={(e) => setKingCode(e.target.value)}
-                placeholder="Paste the starting king's JavaScript here..."
+                placeholder={t('admin.koth.controls.startingKingPlaceholder')}
                 rows={8}
               />
             </div>
@@ -526,9 +528,9 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
               onClick={handleCreate}
               disabled={!adminKey || teams.length < 1}
             >
-              🚀 Create Tournament
+              {t('admin.koth.controls.create')}
               <span className="btn-hint">
-                {teams.length < 1 ? 'Need at least 1 registered team' : 'Closes registration'}
+                {teams.length < 1 ? t('admin.koth.controls.createHintNeed') : t('admin.koth.controls.createHintCloses')}
               </span>
             </button>
           </>
@@ -539,25 +541,25 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
             {tournament.kingName === ADMIN_KING && !battlesRunning && (
               <>
                 <div className="setting-item" style={{ width: '100%' }}>
-                  <label htmlFor="kothKingEdit">Edit Starting King Algorithm</label>
+                  <label htmlFor="kothKingEdit">{t('admin.koth.controls.editKingLabel')}</label>
                   <textarea
                     id="kothKingEdit"
                     className="koth-code-input"
                     value={kingCode}
                     onChange={(e) => setKingCode(e.target.value)}
-                    placeholder="Paste new king algorithm (optional)..."
+                    placeholder={t('admin.koth.controls.editKingPlaceholder')}
                     rows={6}
                   />
                 </div>
                 <button className="koth-btn-sm" onClick={handleUpdateKing} disabled={!adminKey}>
-                  💾 Update King Algorithm
+                  {t('admin.koth.controls.updateKing')}
                 </button>
               </>
             )}
 
             {(!currentRound || currentRound.status === 'finished') && (
               <div className="setting-item">
-                <label htmlFor="kothK">Wins per series (K)</label>
+                <label htmlFor="kothK">{t('admin.koth.controls.kLabel')}</label>
                 <input
                   id="kothK"
                   className="koth-k-input"
@@ -570,37 +572,37 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
             )}
             {(!currentRound || currentRound.status === 'finished') && (
               <button className="admin-btn start" onClick={handleStartRound} disabled={!adminKey}>
-                ▶️ Start Round (first to {roundK})
-                <span className="btn-hint">Teams may load algorithms</span>
+                {t('admin.koth.controls.startRound', { K: roundK })}
+                <span className="btn-hint">{t('admin.koth.controls.startRoundHint')}</span>
               </button>
             )}
 
             {currentRound?.status === 'collecting' && (
               <button className="admin-btn start" onClick={handleRunRound} disabled={!adminKey}>
-                ⚔️ Run Round Battles
-                <span className="btn-hint">All teams fight the king</span>
+                {t('admin.koth.controls.runRound')}
+                <span className="btn-hint">{t('admin.koth.controls.runRoundHint')}</span>
               </button>
             )}
 
             {battlesRunning && (
               <div className="running-notice">
                 <span className="live-dot"></span>
-                Round battles in progress... please wait.
+                {t('admin.koth.controls.battling')}
               </div>
             )}
 
             {!battlesRunning && (
               <button className="admin-btn warning" onClick={handleFinish} disabled={!adminKey}>
-                🏁 Finish Tournament
-                <span className="btn-hint">Current king wins</span>
+                {t('admin.koth.controls.finish')}
+                <span className="btn-hint">{t('admin.koth.controls.finishHint')}</span>
               </button>
             )}
           </>
         )}
 
         <button className="admin-btn danger" onClick={handleReset} disabled={!adminKey || battlesRunning}>
-          🗑️ Reset Championship
-          <span className="btn-hint">Removes teams, tournament, replays</span>
+          {t('admin.koth.controls.reset')}
+          <span className="btn-hint">{t('admin.koth.controls.resetHint')}</span>
         </button>
       </div>
       </div>
@@ -612,25 +614,26 @@ function KothAdminSection({ kothState, adminFetch, showMessage, adminKey }) {
 // Independent of the settings accordions so the host can close the noisy
 // control sections during a screen share and only show this one.
 function KothStandingsSection({ kothState, showMessage }) {
+  const { t } = useT();
   const [selectedReplay, setSelectedReplay] = useState(null);
 
   const handleViewReplay = async (seriesId, gameIndex, teamName, kingName) => {
     try {
       const res = await fetch(`${API_URL}/api/koth/replay/${seriesId}/${gameIndex}`);
       if (!res.ok) {
-        showMessage('Replay not found', true);
+        showMessage(t('admin.messages.replayNotFound'), true);
         return;
       }
       const data = await res.json();
-      setSelectedReplay({ data, leftName: teamName, rightName: kingLabel(kingName) });
+      setSelectedReplay({ data, leftName: teamName, rightName: kingLabel(kingName, t) });
     } catch {
-      showMessage('Failed to load replay', true);
+      showMessage(t('admin.messages.failedReplay'), true);
     }
   };
 
   return (
     <details className="admin-section admin-accordion admin-accordion-blue">
-      <summary className="admin-accordion-summary">📺 Championship — Standings (broadcast view)</summary>
+      <summary className="admin-accordion-summary">{t('admin.broadcast.summary')}</summary>
       <div className="admin-accordion-body">
         <KothStandings kothState={kothState} onViewReplay={handleViewReplay} />
       </div>

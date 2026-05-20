@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import ReplayViewer from './ReplayViewer';
+import { useT } from '../i18n/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const ADMIN_KING = '__admin__';
@@ -40,12 +41,15 @@ for (const ship of state.myShips) {
 }`;
 
 // Human-readable king name (the starting king is an admin pseudo-team).
-export function kingLabel(name) {
-  if (!name) return '—';
-  return name === ADMIN_KING ? 'Admin (starting king)' : name;
+// Takes the t() function so labels respect the current language.
+export function kingLabel(name, t) {
+  if (!name) return t ? t('koth.kingLabel.none') : '—';
+  if (name === ADMIN_KING) return t ? t('koth.kingLabel.admin') : 'Admin (starting king)';
+  return name;
 }
 
 function Championship({ kothState, onBack }) {
+  const { t } = useT();
   const [teamName, setTeamName] = useState('');
   const [registeredName, setRegisteredName] = useState(null);
   const [code, setCode] = useState(DEFAULT_CODE);
@@ -78,14 +82,14 @@ function Championship({ kothState, onBack }) {
   const handleRegister = async () => {
     const name = teamName.trim();
     if (!name) {
-      showMessage('Enter a team name', true);
+      showMessage(t('koth.messages.enterTeamName'), true);
       return;
     }
     // Existing team -> just log in
-    if (teams.some(t => t.name === name)) {
+    if (teams.some(tm => tm.name === name)) {
       setRegisteredName(name);
       localStorage.setItem('kothTeamName', name);
-      showMessage(`Welcome back, ${name}!`);
+      showMessage(t('koth.messages.welcomeBack', { name }));
       return;
     }
     try {
@@ -98,18 +102,18 @@ function Championship({ kothState, onBack }) {
       if (result.success) {
         setRegisteredName(name);
         localStorage.setItem('kothTeamName', name);
-        showMessage('Registered! Submit your algorithm below.');
+        showMessage(t('koth.messages.registered'));
       } else {
         showMessage(result.error, true);
       }
     } catch {
-      showMessage('Failed to register', true);
+      showMessage(t('koth.messages.failedRegister'), true);
     }
   };
 
   const handleSubmitCode = async () => {
     if (!registeredName) {
-      showMessage('Register first', true);
+      showMessage(t('koth.messages.registerFirst'), true);
       return;
     }
     try {
@@ -120,12 +124,12 @@ function Championship({ kothState, onBack }) {
       });
       const result = await res.json();
       if (result.success) {
-        showMessage('Algorithm submitted!');
+        showMessage(t('koth.messages.submitted'));
       } else {
         showMessage(result.error, true);
       }
     } catch {
-      showMessage('Failed to submit code', true);
+      showMessage(t('koth.messages.failedSubmit'), true);
     }
   };
 
@@ -133,21 +137,21 @@ function Championship({ kothState, onBack }) {
     try {
       const res = await fetch(`${API_URL}/api/koth/replay/${seriesId}/${gameIndex}`);
       if (!res.ok) {
-        showMessage('Replay not found', true);
+        showMessage(t('koth.messages.replayNotFound'), true);
         return;
       }
       const data = await res.json();
-      setSelectedReplay({ data, leftName: teamName, rightName: kingLabel(kingName) });
+      setSelectedReplay({ data, leftName: teamName, rightName: kingLabel(kingName, t) });
     } catch {
-      showMessage('Failed to load replay', true);
+      showMessage(t('koth.messages.failedReplay'), true);
     }
   };
 
   return (
     <div className="arena">
       <div className="arena-header">
-        <button className="back-btn" onClick={onBack}>← Back to Simulator</button>
-        <h1>👑 Championship — King of the Hill</h1>
+        <button className="back-btn" onClick={onBack}>{t('koth.backToSimulator')}</button>
+        <h1>{t('koth.title')}</h1>
         {message && (
           <div className={`arena-message ${message.isError ? 'error' : 'success'}`}>
             {message.text}
@@ -160,13 +164,13 @@ function Championship({ kothState, onBack }) {
           className={`tab-btn ${activeTab === 'register' ? 'active' : ''}`}
           onClick={() => setActiveTab('register')}
         >
-          {!registeredName ? '1️⃣ Enlist' : myTeam?.hasCode ? '✅ Your Code' : '2️⃣ Your Code'}
+          {!registeredName ? t('koth.tabs.enlist') : myTeam?.hasCode ? t('koth.tabs.yourCodeDone') : t('koth.tabs.yourCodeCurrent')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'standings' ? 'active' : ''}`}
           onClick={() => setActiveTab('standings')}
         >
-          🏔️ The Hill
+          {t('koth.tabs.theHill')}
         </button>
       </div>
 
@@ -174,12 +178,12 @@ function Championship({ kothState, onBack }) {
         {activeTab === 'register' && (
           <div className="register-panel">
             <div className="register-section">
-              <h2>🚀 Join the Championship</h2>
+              <h2>{t('koth.join.title')}</h2>
               {!registeredName ? (
                 <div className="register-form">
                   <input
                     type="text"
-                    placeholder="Team name (new or existing)"
+                    placeholder={t('koth.join.placeholder')}
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     maxLength={30}
@@ -187,37 +191,37 @@ function Championship({ kothState, onBack }) {
                     onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
                   />
                   <button onClick={handleRegister} disabled={!registrationOpen}>
-                    Enlist
+                    {t('koth.join.enlistBtn')}
                   </button>
                 </div>
               ) : (
                 <div className="registered-info">
-                  <span className="player-badge">✓ Team: <strong>{registeredName}</strong></span>
+                  <span className="player-badge">{t('koth.join.team', { name: '' })}<strong>{registeredName}</strong></span>
                   {myTeam?.hasCode
-                    ? <span className="code-badge">✓ Algorithm loaded</span>
-                    : <span className="code-pending-badge">⬇️ Load your algorithm below</span>}
+                    ? <span className="code-badge">{t('koth.join.algorithmLoaded')}</span>
+                    : <span className="code-pending-badge">{t('koth.join.algorithmPending')}</span>}
                   <button
                     className="logout-btn"
                     disabled={!registrationOpen}
-                    title={registrationOpen ? '' : 'Locked while the tournament is running'}
+                    title={registrationOpen ? '' : t('koth.join.switchTeamLocked')}
                     onClick={() => {
                       setRegisteredName(null);
                       localStorage.removeItem('kothTeamName');
                       setTeamName('');
                     }}
                   >
-                    Switch Team
+                    {t('koth.join.switchTeam')}
                   </button>
                 </div>
               )}
               {!registrationOpen && !registeredName && (
-                <p className="tournament-warning">⚠️ Registration is closed — the tournament has started.</p>
+                <p className="tournament-warning">{t('koth.join.registrationClosed')}</p>
               )}
             </div>
 
             {registeredName && (
               <div className="code-section">
-                <h2>💻 Your Algorithm</h2>
+                <h2>{t('koth.code.title')}</h2>
                 <div className="code-editor-wrapper">
                   <Editor
                     height="400px"
@@ -241,31 +245,31 @@ function Championship({ kothState, onBack }) {
                   onClick={handleSubmitCode}
                   disabled={codeLocked}
                 >
-                  {myTeam?.hasCode ? '🔄 Update Algorithm' : '📤 Submit Algorithm'}
+                  {myTeam?.hasCode ? t('koth.code.update') : t('koth.code.submit')}
                 </button>
                 {codeLocked && (
-                  <p className="tournament-warning">⚠️ Battles are running — code is locked until the round ends.</p>
+                  <p className="tournament-warning">{t('koth.code.lockedWarning')}</p>
                 )}
                 <p className="koth-hint">
-                  Your algorithm is kept between rounds. Tweak it before each round, or leave it as is.
+                  {t('koth.code.hint')}
                 </p>
               </div>
             )}
 
             <div className="players-section">
-              <h2>👥 Teams ({teams.length})</h2>
+              <h2>{t('koth.teams.title', { n: teams.length })}</h2>
               <div className="players-list">
-                {teams.map(t => (
-                  <div key={t.name} className={`player-item ${t.name === registeredName ? 'is-me' : ''}`}>
+                {teams.map(tm => (
+                  <div key={tm.name} className={`player-item ${tm.name === registeredName ? 'is-me' : ''}`}>
                     <span className="player-name">
-                      {t.name === tournament?.kingName ? '👑 ' : ''}{t.name}
+                      {tm.name === tournament?.kingName ? '👑 ' : ''}{tm.name}
                     </span>
-                    <span className={`player-status ${t.hasCode ? 'ready' : 'pending'}`}>
-                      {t.hasCode ? '✓ Algorithm loaded' : '⏳ No algorithm'}
+                    <span className={`player-status ${tm.hasCode ? 'ready' : 'pending'}`}>
+                      {tm.hasCode ? t('koth.teams.algorithmLoaded') : t('koth.teams.noAlgorithm')}
                     </span>
                   </div>
                 ))}
-                {teams.length === 0 && <p className="no-players">No teams registered yet</p>}
+                {teams.length === 0 && <p className="no-players">{t('koth.teams.empty')}</p>}
               </div>
             </div>
           </div>
@@ -296,6 +300,7 @@ function Championship({ kothState, onBack }) {
 // rounds (newest first). Reused both by the player view and the admin
 // "broadcast" view in AdminPanel.
 export function KothStandings({ kothState, onViewReplay }) {
+  const { t } = useT();
   const tournament = kothState?.tournament || null;
   const rounds = tournament?.rounds || [];
   const currentRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
@@ -303,9 +308,9 @@ export function KothStandings({ kothState, onViewReplay }) {
   if (!tournament) {
     return (
       <div className="next-tournament-info">
-        <h3>📋 Waiting for the tournament to start</h3>
+        <h3>{t('koth.standings.waitingStart')}</h3>
         <p className="waiting-message">
-          ⏳ The admin will create the tournament and set the starting king.
+          {t('koth.standings.waitingStartDesc')}
         </p>
       </div>
     );
@@ -315,32 +320,32 @@ export function KothStandings({ kothState, onViewReplay }) {
     <>
       <div className="current-champion-banner">
         <span className="champion-label">
-          {tournament.status === 'completed' ? 'Tournament Winner' : 'Current King of the Hill'}
+          {tournament.status === 'completed' ? t('koth.standings.tournamentWinner') : t('koth.standings.currentKing')}
         </span>
         <span className="champion-name">
-          👑 {kingLabel(tournament.status === 'completed' ? tournament.winner : tournament.kingName)}
+          👑 {kingLabel(tournament.status === 'completed' ? tournament.winner : tournament.kingName, t)}
         </span>
       </div>
 
       {tournament.status === 'completed' && (
         <div className="live-tournament-banner">
-          <span>🏁 Tournament finished</span>
+          <span>{t('koth.standings.finished')}</span>
         </div>
       )}
 
       {currentRound && tournament.status === 'running' && (
         <div className="live-tournament-banner">
           {currentRound.status === 'collecting' && (
-            <span>📥 Round {currentRound.index + 1} — teams are loading algorithms (first to {currentRound.K} wins)</span>
+            <span>{t('koth.standings.roundLoading', { n: currentRound.index + 1, K: currentRound.K })}</span>
           )}
           {currentRound.status === 'battling' && (
             <>
               <span className="live-dot"></span>
-              <span>Round {currentRound.index + 1} battles in progress…</span>
+              <span>{t('koth.standings.roundBattling', { n: currentRound.index + 1 })}</span>
             </>
           )}
           {currentRound.status === 'finished' && (
-            <span>✅ Round {currentRound.index + 1} finished — waiting for the next round</span>
+            <span>{t('koth.standings.roundFinished', { n: currentRound.index + 1 })}</span>
           )}
         </div>
       )}
@@ -353,7 +358,7 @@ export function KothStandings({ kothState, onViewReplay }) {
         />
       ))}
       {rounds.length === 0 && (
-        <p className="waiting-message">⏳ Waiting for the first round to start.</p>
+        <p className="waiting-message">{t('koth.standings.waitingFirstRound')}</p>
       )}
     </>
   );
@@ -361,30 +366,30 @@ export function KothStandings({ kothState, onViewReplay }) {
 
 // One round's series results table.
 function RoundTable({ round, onViewReplay }) {
+  const { t } = useT();
   const series = round.series || [];
 
   return (
     <div className="koth-round">
       <h3>
-        Round {round.index + 1} · first to {round.K} ·
-        {' '}king: {kingLabel(round.kingName)}
+        {t('koth.round.title', { n: round.index + 1, K: round.K, king: kingLabel(round.kingName, t) })}
         {round.status === 'finished' && round.newKing && (
-          <span className="koth-newking"> → new king: 👑 {kingLabel(round.newKing)}</span>
+          <span className="koth-newking">{t('koth.round.newKing', { king: kingLabel(round.newKing, t) })}</span>
         )}
       </h3>
 
       {series.length === 0 ? (
-        <p className="no-players">No challengers in this round.</p>
+        <p className="no-players">{t('koth.round.noChallengers')}</p>
       ) : (
         <table className="koth-table">
           <thead>
             <tr>
-              <th>Team</th>
-              <th>Score (team–king)</th>
-              <th>Result</th>
-              <th>Survived ships</th>
-              <th>Series time</th>
-              <th>Games</th>
+              <th>{t('koth.round.col.team')}</th>
+              <th>{t('koth.round.col.score')}</th>
+              <th>{t('koth.round.col.result')}</th>
+              <th>{t('koth.round.col.survivedShips')}</th>
+              <th>{t('koth.round.col.seriesTime')}</th>
+              <th>{t('koth.round.col.games')}</th>
             </tr>
           </thead>
           <tbody>
@@ -397,15 +402,15 @@ function RoundTable({ round, onViewReplay }) {
                   {round.status === 'finished' && s.teamName === round.newKing ? '👑 ' : ''}
                   {s.teamName}
                 </td>
-                <td>{s.teamWins}–{s.kingWins}{s.draws > 0 ? ` (${s.draws} draw)` : ''}</td>
+                <td>{s.teamWins}–{s.kingWins}{s.draws > 0 ? t('koth.round.draws', { n: s.draws }) : ''}</td>
                 <td>
-                  {s.status === 'no_code' && <span className="koth-res pending">No algorithm</span>}
-                  {s.status === 'pending' && <span className="koth-res pending">Pending</span>}
-                  {s.status === 'running' && <span className="koth-res running">Battling…</span>}
+                  {s.status === 'no_code' && <span className="koth-res pending">{t('koth.round.result.noCode')}</span>}
+                  {s.status === 'pending' && <span className="koth-res pending">{t('koth.round.result.pending')}</span>}
+                  {s.status === 'running' && <span className="koth-res running">{t('koth.round.result.battling')}</span>}
                   {s.status === 'done' && (
                     s.beatKing
-                      ? <span className="koth-res win">Beat the king</span>
-                      : <span className="koth-res loss">King held</span>
+                      ? <span className="koth-res win">{t('koth.round.result.beatKing')}</span>
+                      : <span className="koth-res loss">{t('koth.round.result.kingHeld')}</span>
                   )}
                 </td>
                 <td>{s.status === 'done' ? s.survivingShipsInWins : '—'}</td>

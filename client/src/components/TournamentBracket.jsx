@@ -1,23 +1,26 @@
+import { useState } from 'react';
+import { useT } from '../i18n/LanguageContext';
+
 function TournamentBracket({ tournament, onViewReplay, onDownloadLog }) {
+  const { t } = useT();
   if (!tournament || !tournament.bracket) {
-    return <div className="bracket-empty">No bracket data</div>;
+    return <div className="bracket-empty">{t('bracket.empty')}</div>;
   }
 
   const { bracket } = tournament;
-  const roundNames = ['Round 1', 'Quarterfinals', 'Semifinals', 'Final'];
 
   const getRoundName = (index, totalRounds) => {
-    if (index === totalRounds - 1) return 'Final';
-    if (index === totalRounds - 2) return 'Semifinals';
-    if (index === totalRounds - 3) return 'Quarterfinals';
-    return `Round ${index + 1}`;
+    if (index === totalRounds - 1) return t('bracket.round.final');
+    if (index === totalRounds - 2) return t('bracket.round.semifinals');
+    if (index === totalRounds - 3) return t('bracket.round.quarterfinals');
+    return t('bracket.round.round', { n: index + 1 });
   };
 
   return (
     <div className="tournament-bracket">
       {bracket.byePlayers && bracket.byePlayers.length > 0 && (
         <div className="bye-players">
-          <h4>Bye (auto-advance): {bracket.byePlayers.join(', ')}</h4>
+          <h4>{t('bracket.bye', { names: bracket.byePlayers.join(', ') })}</h4>
         </div>
       )}
 
@@ -29,8 +32,8 @@ function TournamentBracket({ tournament, onViewReplay, onDownloadLog }) {
             </h3>
             <div className="round-matches">
               {round.map((match) => (
-                <MatchCard 
-                  key={match.id} 
+                <MatchCard
+                  key={match.id}
                   match={match}
                   onViewReplay={onViewReplay}
                   onDownloadLog={onDownloadLog}
@@ -45,6 +48,7 @@ function TournamentBracket({ tournament, onViewReplay, onDownloadLog }) {
 }
 
 function MatchCard({ match, onViewReplay, onDownloadLog }) {
+  const { t } = useT();
   const [expanded, setExpanded] = useState(false);
 
   const getStatusClass = () => {
@@ -59,18 +63,18 @@ function MatchCard({ match, onViewReplay, onDownloadLog }) {
     <div className={`match-card ${getStatusClass()}`}>
       <div className="match-header" onClick={() => hasGames && setExpanded(!expanded)}>
         <div className={`match-player ${match.winner === match.player1 ? 'winner' : ''}`}>
-          <span className="player-name">{match.player1 || 'TBD'}</span>
+          <span className="player-name">{match.player1 || t('bracket.tbd')}</span>
           {match.status === 'completed' && <span className="player-score">{match.p1Wins || 0}</span>}
         </div>
         <div className="match-vs">
           {match.status === 'running' ? (
-            <span className="live-indicator">🔴 LIVE</span>
+            <span className="live-indicator">{t('bracket.live')}</span>
           ) : (
-            'vs'
+            t('common.vs')
           )}
         </div>
         <div className={`match-player ${match.winner === match.player2 ? 'winner' : ''}`}>
-          <span className="player-name">{match.player2 || 'TBD'}</span>
+          <span className="player-name">{match.player2 || t('bracket.tbd')}</span>
           {match.status === 'completed' && <span className="player-score">{match.p2Wins || 0}</span>}
         </div>
         {hasGames && (
@@ -82,24 +86,24 @@ function MatchCard({ match, onViewReplay, onDownloadLog }) {
         <div className="match-games">
           {match.games.map((game, index) => (
             <div key={index} className="game-row">
-              <span className="game-number">Game {index + 1}</span>
+              <span className="game-number">{t('bracket.gameLabel', { n: index + 1 })}</span>
               <span className={`game-winner ${game.winner === 1 ? 'p1' : game.winner === 2 ? 'p2' : 'draw'}`}>
-                {game.winner === 1 ? match.player1 : 
-                 game.winner === 2 ? match.player2 : 'Draw'}
+                {game.winner === 1 ? match.player1 :
+                 game.winner === 2 ? match.player2 : t('bracket.draw')}
               </span>
-              <span className="game-duration">{Math.floor(game.duration / 1000)}s</span>
+              <span className="game-duration">{t('bracket.duration', { n: Math.floor(game.duration / 1000) })}</span>
               <div className="game-actions">
-                <button 
+                <button
                   className="replay-btn"
                   onClick={(e) => { e.stopPropagation(); onViewReplay(match.id, index, match.player1, match.player2); }}
                 >
-                  🎬 Replay
+                  {t('bracket.replay')}
                 </button>
-                <button 
+                <button
                   className="download-btn"
                   onClick={(e) => { e.stopPropagation(); onDownloadLog(match.id, index); }}
                 >
-                  📥 Log
+                  {t('bracket.log')}
                 </button>
               </div>
             </div>
@@ -109,8 +113,6 @@ function MatchCard({ match, onViewReplay, onDownloadLog }) {
     </div>
   );
 }
-
-import { useState } from 'react';
 
 export default TournamentBracket;
 

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { GAME_CONSTANTS } from '@space-battles/shared';
+import { useT } from '../i18n/LanguageContext';
 
 export default function ApiDocs({ onClose }) {
+  const { t } = useT();
   const [activeTab, setActiveTab] = useState('state');
   const C = GAME_CONSTANTS; // Short alias
 
@@ -9,186 +11,186 @@ export default function ApiDocs({ onClose }) {
     <div className="api-docs-overlay">
       <div className="api-docs-modal">
         <button className="api-docs-close" onClick={onClose}>✕</button>
-        
+
         <div className="api-docs-header">
           <span className="api-docs-icon">📖</span>
-          <h1>Fleet Command API</h1>
-          <p className="api-docs-subtitle">Complete reference for programming your ships</p>
+          <h1>{t('apiDocs.title')}</h1>
+          <p className="api-docs-subtitle">{t('apiDocs.subtitle')}</p>
         </div>
 
         <div className="api-docs-tabs">
-          <button 
+          <button
             className={`api-tab ${activeTab === 'state' ? 'active' : ''}`}
             onClick={() => setActiveTab('state')}
           >
-            Game State
+            {t('apiDocs.tabs.state')}
           </button>
-          <button 
+          <button
             className={`api-tab ${activeTab === 'ships' ? 'active' : ''}`}
             onClick={() => setActiveTab('ships')}
           >
-            Ships
+            {t('apiDocs.tabs.ships')}
           </button>
-          <button 
+          <button
             className={`api-tab ${activeTab === 'commands' ? 'active' : ''}`}
             onClick={() => setActiveTab('commands')}
           >
-            Commands
+            {t('apiDocs.tabs.commands')}
           </button>
-          <button 
+          <button
             className={`api-tab ${activeTab === 'constants' ? 'active' : ''}`}
             onClick={() => setActiveTab('constants')}
           >
-            Constants
+            {t('apiDocs.tabs.constants')}
           </button>
-          <button 
+          <button
             className={`api-tab ${activeTab === 'examples' ? 'active' : ''}`}
             onClick={() => setActiveTab('examples')}
           >
-            Examples
+            {t('apiDocs.tabs.examples')}
           </button>
         </div>
 
         <div className="api-docs-content">
           {activeTab === 'state' && (
             <div className="api-section">
-              <h2>Game State Object</h2>
+              <h2>{t('apiDocs.state.title')}</h2>
               <p className="api-intro">
-                Your code receives the <code>state</code> object containing all game information.
+                {t('apiDocs.state.introPre')}<code>{t('apiDocs.state.introCode')}</code>{t('apiDocs.state.introPost')}
               </p>
-              
+
               <div className="api-item">
                 <div className="api-name">state.myShips[]</div>
                 <div className="api-type">Array&lt;Ship&gt;</div>
-                <div className="api-desc">Array of your fleet's ships (alive and destroyed)</div>
+                <div className="api-desc">{t('apiDocs.state.myShipsDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">state.enemyShips[]</div>
                 <div className="api-type">Array&lt;Ship&gt;</div>
-                <div className="api-desc">Array of enemy fleet's ships (alive and destroyed)</div>
+                <div className="api-desc">{t('apiDocs.state.enemyShipsDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">state.allShips[]</div>
                 <div className="api-type">Array&lt;Ship&gt;</div>
-                <div className="api-desc">All ships from both fleets combined</div>
+                <div className="api-desc">{t('apiDocs.state.allShipsDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">state.rockets[]</div>
                 <div className="api-type">Array&lt;Rocket&gt;</div>
-                <div className="api-desc">All active rockets currently flying</div>
+                <div className="api-desc">{t('apiDocs.state.rocketsDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">state.field</div>
                 <div className="api-type">Object</div>
-                <div className="api-desc">Battlefield dimensions: <code>{`{ width: ${C.FIELD_WIDTH}, height: ${C.FIELD_HEIGHT} }`}</code></div>
+                <div className="api-desc">{t('apiDocs.state.fieldDesc')} <code>{`{ width: ${C.FIELD_WIDTH}, height: ${C.FIELD_HEIGHT} }`}</code></div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">state.gameTime</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Elapsed time since battle start (milliseconds)</div>
+                <div className="api-desc">{t('apiDocs.state.gameTimeDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">state.constants</div>
                 <div className="api-type">Object</div>
-                <div className="api-desc">Game constants (speeds, reload time, etc.)</div>
+                <div className="api-desc">{t('apiDocs.state.constantsDesc')}</div>
               </div>
             </div>
           )}
 
           {activeTab === 'ships' && (
             <div className="api-section">
-              <h2>Ship Properties</h2>
+              <h2>{t('apiDocs.ships.title')}</h2>
               <p className="api-intro">
-                Each ship object contains these properties:
+                {t('apiDocs.ships.intro')}
               </p>
 
               <div className="api-item">
                 <div className="api-name">ship.id</div>
                 <div className="api-type">String</div>
-                <div className="api-desc">Unique identifier (e.g., "p1_ship_0")</div>
+                <div className="api-desc">{t('apiDocs.ships.idDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">ship.x, ship.y</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Position on the battlefield (0-{C.FIELD_WIDTH}, 0-{C.FIELD_HEIGHT})</div>
+                <div className="api-desc">{t('apiDocs.ships.positionDesc', { w: C.FIELD_WIDTH, h: C.FIELD_HEIGHT })}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">ship.bodyAngle</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Ship's facing direction in degrees (0° = right, 90° = down)</div>
+                <div className="api-desc">{t('apiDocs.ships.bodyAngleDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">ship.health</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Current health (1-{C.SHIP_MAX_HEALTH}, 0 = destroyed)</div>
+                <div className="api-desc">{t('apiDocs.ships.healthDesc', { max: C.SHIP_MAX_HEALTH })}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">ship.isAlive</div>
                 <div className="api-type">Boolean</div>
-                <div className="api-desc">Whether the ship is still active</div>
+                <div className="api-desc">{t('apiDocs.ships.isAliveDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">ship.canShoot</div>
                 <div className="api-type">Boolean</div>
-                <div className="api-desc">Whether the ship can fire (reload complete)</div>
+                <div className="api-desc">{t('apiDocs.ships.canShootDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">ship.healthRatio</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Health as ratio (0.0 - 1.0), affects rotation and boost speed</div>
+                <div className="api-desc">{t('apiDocs.ships.healthRatioDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">ship.maxSpeed</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Maximum speed at current health</div>
+                <div className="api-desc">{t('apiDocs.ships.maxSpeedDesc')}</div>
               </div>
 
-              <h2 style={{marginTop: '2rem'}}>Rocket Properties</h2>
-              
+              <h2 style={{ marginTop: '2rem' }}>{t('apiDocs.ships.rocketsTitle')}</h2>
+
               <div className="api-item">
                 <div className="api-name">rocket.id</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Unique rocket identifier</div>
+                <div className="api-desc">{t('apiDocs.ships.rocket.idDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">rocket.x, rocket.y</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Current position of the rocket</div>
+                <div className="api-desc">{t('apiDocs.ships.rocket.positionDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">rocket.angle</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Direction of travel in degrees</div>
+                <div className="api-desc">{t('apiDocs.ships.rocket.angleDesc')}</div>
               </div>
 
               <div className="api-item">
                 <div className="api-name">rocket.playerId</div>
                 <div className="api-type">Number</div>
-                <div className="api-desc">Which player fired this rocket (1 or 2)</div>
+                <div className="api-desc">{t('apiDocs.ships.rocket.playerIdDesc')}</div>
               </div>
             </div>
           )}
 
           {activeTab === 'commands' && (
             <div className="api-section">
-              <h2>Issuing Commands</h2>
+              <h2>{t('apiDocs.commands.title')}</h2>
               <p className="api-intro">
-                Set commands on the <code>commands</code> object using ship IDs as keys:
+                {t('apiDocs.commands.introPre')}<code>{t('apiDocs.commands.introCode')}</code>{t('apiDocs.commands.introPost')}
               </p>
 
               <div className="api-code-block">
@@ -199,39 +201,43 @@ export default function ApiDocs({ onClose }) {
 };`}</pre>
               </div>
 
-              <h3>Available Commands</h3>
+              <h3>{t('apiDocs.commands.subtitle')}</h3>
 
               <div className="api-item highlight">
                 <div className="api-name">rotate</div>
-                <div className="api-type">Number (-1 to 1)</div>
+                <div className="api-type">{t('apiDocs.commands.rotateType')}</div>
                 <div className="api-desc">
-                  <strong>1</strong> = full clockwise, <strong>-1</strong> = full counter-clockwise, <strong>0</strong> = no rotation
-                  <div className="api-note">✨ Variable control! Use 0.5 for 50% rotation speed, -0.3 for slow counter-clockwise, etc. Max speed decreases with damage.</div>
+                  <strong>{t('apiDocs.commands.rotateDescBold1')}</strong>{t('apiDocs.commands.rotateDescPart1')}
+                  <strong>{t('apiDocs.commands.rotateDescBold2')}</strong>{t('apiDocs.commands.rotateDescPart2')}
+                  <strong>{t('apiDocs.commands.rotateDescBold3')}</strong>{t('apiDocs.commands.rotateDescPart3')}
+                  <div className="api-note">{t('apiDocs.commands.rotateNote')}</div>
                 </div>
               </div>
 
               <div className="api-item highlight">
                 <div className="api-name">boost</div>
-                <div className="api-type">Number (0 to 1)</div>
+                <div className="api-type">{t('apiDocs.commands.boostType')}</div>
                 <div className="api-desc">
-                  <strong>1</strong> = full boost, <strong>0</strong> = no boost, <strong>0.5</strong> = half boost
-                  <div className="api-note">✨ Variable control! Ships always drift forward at MIN_SPEED ({C.SHIP_MIN_SPEED}). Boost adds up to BOOST_SPEED ({C.SHIP_BOOST_SPEED}) × health_ratio.</div>
+                  <strong>{t('apiDocs.commands.boostDescBold1')}</strong>{t('apiDocs.commands.boostDescPart1')}
+                  <strong>{t('apiDocs.commands.boostDescBold2')}</strong>{t('apiDocs.commands.boostDescPart2')}
+                  <strong>{t('apiDocs.commands.boostDescBold3')}</strong>{t('apiDocs.commands.boostDescPart3')}
+                  <div className="api-note">{t('apiDocs.commands.boostNote', { min: C.SHIP_MIN_SPEED, boost: C.SHIP_BOOST_SPEED })}</div>
                 </div>
               </div>
 
               <div className="api-item highlight">
                 <div className="api-name">shoot</div>
-                <div className="api-type">Boolean</div>
+                <div className="api-type">{t('apiDocs.commands.shootType')}</div>
                 <div className="api-desc">
-                  <strong>true</strong> = fire rocket (if reloaded)
+                  <strong>{t('apiDocs.commands.shootDescBold')}</strong>{t('apiDocs.commands.shootDescPart')}
                 </div>
               </div>
 
               <div className="damage-warning">
                 <span className="warning-icon">⚠️</span>
                 <div className="warning-text">
-                  <strong>Damage affects performance!</strong>
-                  <p>Rotation speed, boost power, and reload time all degrade proportionally to your ship's health level. A ship at 1/{C.SHIP_MAX_HEALTH} health rotates {C.SHIP_MAX_HEALTH}× slower, boosts {C.SHIP_MAX_HEALTH}× weaker, and reloads {C.SHIP_MAX_HEALTH}× longer.</p>
+                  <strong>{t('apiDocs.commands.damageTitle')}</strong>
+                  <p>{t('apiDocs.commands.damageText', { max: C.SHIP_MAX_HEALTH })}</p>
                 </div>
               </div>
             </div>
@@ -239,70 +245,70 @@ export default function ApiDocs({ onClose }) {
 
           {activeTab === 'constants' && (
             <div className="api-section">
-              <h2>Game Constants</h2>
+              <h2>{t('apiDocs.constants.title')}</h2>
               <p className="api-intro">
-                Access via <code>state.constants</code>
+                {t('apiDocs.constants.introPre')}<code>{t('apiDocs.constants.introCode')}</code>
               </p>
 
               <div className="constants-grid">
                 <div className="constant-card">
                   <div className="constant-name">FIELD_WIDTH</div>
                   <div className="constant-value">{C.FIELD_WIDTH}</div>
-                  <div className="constant-desc">Battlefield width in units</div>
+                  <div className="constant-desc">{t('apiDocs.constants.FIELD_WIDTH')}</div>
                 </div>
 
                 <div className="constant-card">
                   <div className="constant-name">FIELD_HEIGHT</div>
                   <div className="constant-value">{C.FIELD_HEIGHT}</div>
-                  <div className="constant-desc">Battlefield height in units</div>
+                  <div className="constant-desc">{t('apiDocs.constants.FIELD_HEIGHT')}</div>
                 </div>
 
                 <div className="constant-card">
                   <div className="constant-name">MAX_GAME_DURATION</div>
                   <div className="constant-value">{C.MAX_GAME_DURATION}</div>
-                  <div className="constant-desc">{Math.floor(C.MAX_GAME_DURATION / 60000)} minute time limit (ms)</div>
+                  <div className="constant-desc">{t('apiDocs.constants.MAX_GAME_DURATION', { min: Math.floor(C.MAX_GAME_DURATION / 60000) })}</div>
                 </div>
 
                 <div className="constant-card">
                   <div className="constant-name">SHIPS_PER_PLAYER</div>
                   <div className="constant-value">{C.SHIPS_PER_PLAYER}</div>
-                  <div className="constant-desc">Ships in each fleet</div>
+                  <div className="constant-desc">{t('apiDocs.constants.SHIPS_PER_PLAYER')}</div>
                 </div>
 
                 <div className="constant-card">
                   <div className="constant-name">SHIP_MAX_HEALTH</div>
                   <div className="constant-value">{C.SHIP_MAX_HEALTH}</div>
-                  <div className="constant-desc">Hits to destroy a ship</div>
+                  <div className="constant-desc">{t('apiDocs.constants.SHIP_MAX_HEALTH')}</div>
                 </div>
 
                 <div className="constant-card">
                   <div className="constant-name">SHIP_MIN_SPEED</div>
                   <div className="constant-value">{C.SHIP_MIN_SPEED}</div>
-                  <div className="constant-desc">Base forward speed (always active)</div>
+                  <div className="constant-desc">{t('apiDocs.constants.SHIP_MIN_SPEED')}</div>
                 </div>
 
                 <div className="constant-card">
                   <div className="constant-name">SHIP_BOOST_SPEED</div>
                   <div className="constant-value">{C.SHIP_BOOST_SPEED}</div>
-                  <div className="constant-desc">Max additional boost speed</div>
+                  <div className="constant-desc">{t('apiDocs.constants.SHIP_BOOST_SPEED')}</div>
                 </div>
 
                 <div className="constant-card">
                   <div className="constant-name">SHIP_ROTATION_SPEED</div>
                   <div className="constant-value">{C.SHIP_ROTATION_SPEED}</div>
-                  <div className="constant-desc">Degrees per second (at full health)</div>
+                  <div className="constant-desc">{t('apiDocs.constants.SHIP_ROTATION_SPEED')}</div>
                 </div>
 
                 <div className="constant-card">
                   <div className="constant-name">ROCKET_SPEED</div>
                   <div className="constant-value">{C.ROCKET_SPEED}</div>
-                  <div className="constant-desc">Rocket travel speed</div>
+                  <div className="constant-desc">{t('apiDocs.constants.ROCKET_SPEED')}</div>
                 </div>
 
                 <div className="constant-card">
                   <div className="constant-name">RELOAD_TIME</div>
                   <div className="constant-value">{C.RELOAD_TIME}</div>
-                  <div className="constant-desc">Base reload time in ms</div>
+                  <div className="constant-desc">{t('apiDocs.constants.RELOAD_TIME')}</div>
                 </div>
               </div>
             </div>
@@ -310,9 +316,9 @@ export default function ApiDocs({ onClose }) {
 
           {activeTab === 'examples' && (
             <div className="api-section">
-              <h2>Complete Fleet Program</h2>
+              <h2>{t('apiDocs.examples.title')}</h2>
               <p className="api-intro">
-                Copy and paste this entire code into the editor. It's a fully working fleet AI!
+                {t('apiDocs.examples.intro')}
               </p>
 
               <div className="api-code-block full-program">
@@ -340,11 +346,11 @@ const enemies = state.enemyShips.filter(e => e.isAlive);
 // Control each of our ships
 for (const ship of state.myShips) {
   if (!ship.isAlive) continue;
-  
+
   // Find closest enemy
   let closestEnemy = null;
   let closestDist = Infinity;
-  
+
   for (const enemy of enemies) {
     const dist = distance(ship, enemy);
     if (dist < closestDist) {
@@ -352,70 +358,70 @@ for (const ship of state.myShips) {
       closestEnemy = enemy;
     }
   }
-  
+
   // Default: spin and shoot
   let rotate = 1;
   let boost = 0;
   let shoot = ship.canShoot;
-  
+
   if (closestEnemy) {
     // Calculate angle to target
     const targetAngle = angleTo(ship, closestEnemy);
     const angleDiff = normalizeAngle(targetAngle - ship.bodyAngle);
-    
+
     // Smooth rotation: fast when far off, slow when close
     const rotateSpeed = Math.min(1, Math.abs(angleDiff) / 30);
     rotate = angleDiff > 0 ? rotateSpeed : -rotateSpeed;
-    
+
     // Only shoot when well-aimed (within 15 degrees)
     shoot = ship.canShoot && Math.abs(angleDiff) < 15;
-    
+
     // Boost toward distant enemies, slow down when close
     boost = closestDist > 400 ? 1 : 0.3;
   }
-  
+
   commands[ship.id] = { rotate, boost, shoot };
 }`}</pre>
               </div>
 
-              <h2 style={{marginTop: '2rem'}}>Utility Snippets</h2>
+              <h2 style={{ marginTop: '2rem' }}>{t('apiDocs.examples.utilitiesTitle')}</h2>
               <p className="api-intro">
-                Useful code patterns you can incorporate into your fleet program.
+                {t('apiDocs.examples.utilitiesIntro')}
               </p>
 
-              <h3>Lead Target (Predict Movement)</h3>
+              <h3>{t('apiDocs.examples.leadTitle')}</h3>
               <div className="api-code-block">
                 <pre>{`// Aim where enemy WILL BE, not where they are now
 function leadTarget(ship, enemy) {
   const dist = distance(ship, enemy);
   const travelTime = dist / state.constants.ROCKET_SPEED;
-  
+
   // Predict enemy position
   const rad = enemy.bodyAngle * Math.PI / 180;
   const speed = state.constants.SHIP_MIN_SPEED;
   const futureX = enemy.x + Math.cos(rad) * speed * travelTime;
   const futureY = enemy.y + Math.sin(rad) * speed * travelTime;
-  
+
   return angleTo(ship, { x: futureX, y: futureY });
 }`}</pre>
               </div>
 
-              <h3>Detect Incoming Rockets</h3>
+              <h3>{t('apiDocs.examples.detectTitle')}</h3>
               <div className="api-code-block">
                 <pre>{`// Check if any enemy rockets are heading toward this ship
 function isUnderFire(ship) {
   for (const rocket of state.rockets) {
     // Skip our own rockets
     if (rocket.playerId === ship.playerId) continue;
-    
+
     const rad = rocket.angle * Math.PI / 180;
     const dx = ship.x - rocket.x;
     const dy = ship.y - rocket.y;
-    
+
     // Is rocket heading our way?
     const dot = dx * Math.cos(rad) + dy * Math.sin(rad);
     if (dot < 0) continue; // Moving away
-    
+
     // Will it hit us?
     const dist = Math.hypot(dx, dy);
     if (dist < 200) return true; // Danger zone!
@@ -424,7 +430,7 @@ function isUnderFire(ship) {
 }`}</pre>
               </div>
 
-              <h3>Evasive Maneuvers</h3>
+              <h3>{t('apiDocs.examples.evasiveTitle')}</h3>
               <div className="api-code-block">
                 <pre>{`// Dodge if under fire, otherwise pursue
 if (isUnderFire(ship)) {
@@ -440,7 +446,7 @@ if (isUnderFire(ship)) {
 }`}</pre>
               </div>
 
-              <h3>Stay in Bounds</h3>
+              <h3>{t('apiDocs.examples.boundsTitle')}</h3>
               <div className="api-code-block">
                 <pre>{`// Turn away from edges
 const margin = 200;
@@ -463,4 +469,3 @@ if (edgeTurn !== 0) {
     </div>
   );
 }
-

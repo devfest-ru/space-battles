@@ -89,6 +89,7 @@ body::after {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 2rem;
   border-bottom: 1px solid var(--border-color);
   background: rgba(17, 24, 39, 0.8);
   backdrop-filter: blur(10px);
@@ -686,7 +687,7 @@ body::after {
 }
 
 .mode-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.45rem 0.85rem;
   font-family: 'Orbitron', sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
@@ -698,6 +699,20 @@ body::after {
   transition: all 0.3s ease;
   background: transparent;
   color: var(--text-secondary);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.mode-btn-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.mode-btn-label {
+  white-space: nowrap;
 }
 
 .mode-btn:hover {
@@ -3145,6 +3160,56 @@ body::after {
 
 .icon-btn.sound-off {
   opacity: 0.5;
+}
+
+/* Language switcher — small EN | RU pill. Same scale as icon buttons,
+   used both in the main header and inside the admin panel header.
+   Each half is a fixed-width pill button with text-align centering — no
+   flex magic, no inter-button border, so both halves are pixel-symmetric. */
+.lang-switcher {
+  display: inline-flex;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  overflow: hidden;
+  height: 28px;
+  box-sizing: border-box;
+}
+
+.lang-switcher .lang-btn {
+  width: 38px;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.lang-switcher .lang-btn:hover {
+  color: var(--accent-cyan);
+}
+
+.lang-switcher .lang-btn.active {
+  background: rgba(255, 149, 0, 0.12);
+  color: var(--accent-cyan);
+}
+
+/* Admin panel uses red accent — re-color the active state to match. */
+.admin-header .lang-switcher .lang-btn.active {
+  background: rgba(255, 51, 102, 0.12);
+  color: var(--accent-red);
+}
+
+.admin-header .lang-switcher .lang-btn:hover {
+  color: var(--accent-red);
 }
 
 @media (max-width: 600px) {
