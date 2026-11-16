@@ -15,11 +15,7 @@ function ensureDirectories() {
 
 // How many draws in a row end a series early (the algorithms clearly cannot
 // touch each other). A decisive game resets the streak.
-function consecutiveDrawLimit(K) {
-  if (K <= 1) return 2;
-  if (K === 2) return 3;
-  return 4;
-}
+const CONSECUTIVE_DRAW_LIMIT = 2;
 
 // King of the Hill tournament manager - fully isolated from the olympic ArenaManager.
 export class KothManager {
@@ -307,7 +303,7 @@ export class KothManager {
     this.notifyUpdate();
 
     const K = round.K;
-    const drawLimit = consecutiveDrawLimit(K);
+    const drawLimit = CONSECUTIVE_DRAW_LIMIT;
     const seriesId = `${this.tournament.id}_r${round.index}_t${teamIndex}`;
     let gameIndex = 0;
     let consecutiveDraws = 0;
