@@ -25,7 +25,7 @@ export const GAME_CONSTANTS = {
   PLAYER_CODE_TIMEOUT: 100,         // Max milliseconds for player code execution
   
   // Game rules
-  MAX_GAME_DURATION: 120000,        // 2 minutes max game duration (in ms)
+  MAX_GAME_DURATION: 90000,         // 90 seconds max game duration (in ms)
 };
 
 export default GAME_CONSTANTS;
